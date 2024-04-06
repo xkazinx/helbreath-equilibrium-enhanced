@@ -31,7 +31,7 @@ public:
 	int   m_iEffectFrame, m_iEffectTotalFrame;
 	int   m_iApprColor; // v1.4
 	int   m_iDeadChatMsg;
-
+	bool m_bSpriteOmit = false;
 	WORD  m_wDeadObjectID;
 	WORD  m_wObjectID;
 

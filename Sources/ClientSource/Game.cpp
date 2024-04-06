@@ -1009,7 +1009,10 @@ void CGame::UpdateScreen()
 
 
 void CGame::CalcViewPoint()
-{ short dX, dY;
+{ 
+	auto value = _new_camera ? 2 : 4;
+
+	short dX, dY;
 	dX = m_sViewPointX - m_sViewDstX;
 	dY = m_sViewPointY - m_sViewDstY;
 	if (abs(dX) < abs(m_sViewDX))
@@ -1020,8 +1023,8 @@ void CGame::CalcViewPoint()
 		if (dX < 0) m_sViewDX++;
 		if (dX == 0) m_sViewDX = 0;
 		if (abs(dX) < 40) {
-			if (m_sViewDX > 4)  m_sViewDX = 4;
-			else if (m_sViewDX < -4) m_sViewDX = -4;
+			if (m_sViewDX > value)  m_sViewDX = value;
+			else if (m_sViewDX < -value) m_sViewDX = -value;
 		}
 		m_sViewPointX += m_sViewDX;
 	}
@@ -1034,8 +1037,8 @@ void CGame::CalcViewPoint()
 		if (dY < 0) m_sViewDY++;
 		if (dY == 0) m_sViewDY = 0;
 		if (abs(dY) < 40) {
-			if (m_sViewDY > 4)  m_sViewDY = 4;
-			else if (m_sViewDY < -4) m_sViewDY = -4;
+			if (m_sViewDY > value)  m_sViewDY = value;
+			else if (m_sViewDY < -value) m_sViewDY = -value;
 		}
 		m_sViewPointY += m_sViewDY;
 	}
@@ -2003,6 +2006,7 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
  short sItemSprite, sItemSpriteFrame, sObjSpr, sObjSprFrame, sDynamicObject, sDynamicObjectFrame;
  static DWORD dwMCAnimTime = G_dwGlobalTime;
  static short sMCAnimFrame = 1;
+ bool frame_omit = false;
 // Xmas
  static int ix1[100];
  static int iy2[100];
@@ -2072,6 +2076,7 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
 					cDynamicObjectData2 = m_pMapData->m_pData[dX][dY].m_cDynamicObjectData2;
 					cDynamicObjectData3 = m_pMapData->m_pData[dX][dY].m_cDynamicObjectData3;
 					cDynamicObjectData4 = m_pMapData->m_pData[dX][dY].m_cDynamicObjectData4;
+					_tmp_bSpriteOmit = m_pMapData->m_pData[dX][dY].m_bSpriteOmit;
 					bRet = TRUE;
 			 	}
 
@@ -2131,6 +2136,7 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
 					sFocus_dX = _tmp_dX;
 					sFocus_dY = _tmp_dY;
 					bContact = FALSE;
+					_tmp_bSpriteOmit = m_pMapData->m_pData[dX][dY].m_bSpriteOmit;
 				}
 
 				_tmp_wObjectID = _tmp_sOwnerType = _tmp_sAppr1 = _tmp_sAppr2 = _tmp_sAppr3 = _tmp_sAppr4 = _tmp_iStatus = NULL;
@@ -2161,6 +2167,7 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
 					_tmp_iEffectFrame = m_pMapData->m_pData[dX][dY].m_iEffectFrame;
 
 					strcpy(_tmp_cName, m_pMapData->m_pData[dX][dY].m_cOwnerName);
+					_tmp_bSpriteOmit = m_pMapData->m_pData[dX][dY].m_bSpriteOmit;
 					bRet = TRUE;
 
 					if (m_iIlusionOwnerH != NULL)
@@ -2183,15 +2190,15 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
 						break;
 
 					case DEF_OBJECTMOVE:
-						bContact = DrawObject_OnMove(indexX, indexY, ix, iy, FALSE, dwTime, msX, msY);
+						bContact = DrawObject_OnMove(indexX, indexY, ix, iy, FALSE, dwTime, msX, msY, _tmp_bSpriteOmit);
 						break;
 
 					case DEF_OBJECTDAMAGEMOVE:
-						bContact = DrawObject_OnDamageMove(indexX, indexY, ix, iy, FALSE, dwTime, msX, msY);
+						bContact = DrawObject_OnDamageMove(indexX, indexY, ix, iy, FALSE, dwTime, msX, msY, _tmp_bSpriteOmit);
 						break;
 
 					case DEF_OBJECTRUN:
-						bContact = DrawObject_OnRun(indexX, indexY, ix, iy, FALSE, dwTime, msX, msY);
+						bContact = DrawObject_OnRun(indexX, indexY, ix, iy, FALSE, dwTime, msX, msY, _tmp_bSpriteOmit);
 						break;
 
 					case DEF_OBJECTATTACK:
@@ -2242,6 +2249,7 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
 						sFocus_dX = _tmp_dX; // v2.171
 						sFocus_dY = _tmp_dY; // v2.171
 						bContact = FALSE;
+						frame_omit = m_pMapData->m_pData[dX][dY].m_bSpriteOmit;
 					}
 
 					if (memcmp(m_cPlayerName, _tmp_cName, 10) == 0)
@@ -2685,15 +2693,15 @@ void CGame::DrawObjects(short sPivotX, short sPivotY, short sDivX, short sDivY, 
 				break;
 			}
 
-			DrawObject_OnMove(m_sMCX, m_sMCY, sFocusX, sFocusY, TRUE, dwTime, msX, msY);
+			DrawObject_OnMove(m_sMCX, m_sMCY, sFocusX, sFocusY, TRUE, dwTime, msX, msY, frame_omit);
 			break;
 
 		case DEF_OBJECTDAMAGEMOVE:
-			DrawObject_OnDamageMove(m_sMCX, m_sMCY, sFocusX, sFocusY, TRUE, dwTime, msX, msY);
+			DrawObject_OnDamageMove(m_sMCX, m_sMCY, sFocusX, sFocusY, TRUE, dwTime, msX, msY, frame_omit);
 			break;
 
 		case DEF_OBJECTRUN:
-			DrawObject_OnRun(m_sMCX, m_sMCY, sFocusX, sFocusY, TRUE, dwTime, msX, msY);
+			DrawObject_OnRun(m_sMCX, m_sMCY, sFocusX, sFocusY, TRUE, dwTime, msX, msY, frame_omit);
 			break;
 
 		case DEF_OBJECTATTACK:
@@ -11944,7 +11952,7 @@ BOOL   CGame::DrawObject_OnDead(int indexX, int indexY, int sX, int sY, BOOL bTr
 
 
 
-BOOL   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, BOOL bTrans, DWORD dwTime, int msX, int msY)
+BOOL   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, BOOL bTrans, DWORD dwTime, int msX, int msY, bool frame_omision)
 {int dx, dy;
  int iBodyIndex, iHairIndex, iUndiesIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iHelmIndex, iR, iG, iB;
  int iWeaponIndex, iShieldIndex, iAdd, iMantleIndex;
@@ -12143,16 +12151,21 @@ BOOL   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, BOOL bTr
 	}
 	dx = 0;
 	dy = 0;
+
+	bool value = _new_camera ? frame_omision : 0;
+	int value_2 = _new_camera ? 30 : 28;
+
 	switch (_tmp_cDir) {
-	case 1 : dy = 28 - (_tmp_cFrame<<2); break;
-	case 2 : dy = 28 - (_tmp_cFrame<<2); dx = (_tmp_cFrame<<2) - 28; break;
-	case 3 : dx = (_tmp_cFrame<<2) - 28; break;
-	case 4 : dx = (_tmp_cFrame<<2) - 28; dy = (_tmp_cFrame<<2) - 28; break;
-	case 5 : dy = (_tmp_cFrame<<2) - 28; break;
-	case 6 : dy = (_tmp_cFrame<<2) - 28; dx = 28 - (_tmp_cFrame<<2); break;
-	case 7 : dx = 28 - (_tmp_cFrame<<2); break;
-	case 8 : dx = 28 - (_tmp_cFrame<<2); dy = 28 - (_tmp_cFrame<<2); break;
+	case 1: dy = value_2 - (_tmp_cFrame << 2) - value; break;
+	case 2: dy = value_2 - (_tmp_cFrame << 2) - value; dx = (_tmp_cFrame << 2) + value - value_2; break;
+	case 3: dx = (_tmp_cFrame << 2) + value - value_2; break;
+	case 4: dx = (_tmp_cFrame << 2) + value - value_2; dy = (_tmp_cFrame << 2) + value - value_2; break;
+	case 5: dy = (_tmp_cFrame << 2) + value - value_2; break;
+	case 6: dy = (_tmp_cFrame << 2) + value - value_2; dx = value_2 - (_tmp_cFrame << 2) - value; break;
+	case 7: dx = value_2 - (_tmp_cFrame << 2) - value; break;
+	case 8: dx = value_2 - (_tmp_cFrame << 2) - value; dy = value_2 - (_tmp_cFrame << 2) - value; break;
 	}
+
 	switch (_tmp_sOwnerType) {
 	case 1:
 	case 2:
@@ -12687,7 +12700,7 @@ BOOL   CGame::DrawObject_OnMove(int indexX, int indexY, int sX, int sY, BOOL bTr
 	return FALSE;
 }
 
-BOOL CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, BOOL bTrans, DWORD dwTime, int msX, int msY)
+BOOL CGame::DrawObject_OnDamageMove(int indexX, int indexY, int sX, int sY, BOOL bTrans, DWORD dwTime, int msX, int msY, bool frame_omision)
 {
  int cFrame, cDir;
  int dx, dy;
@@ -15221,6 +15234,11 @@ BOOL CGame::bReadLoginConfigFile(char * cFn)
 					}
 					cReadMode = 0;
 					break;
+
+				case 7:
+					_new_camera = (bool)(atoi(token) > 0);
+					cReadMode = 0;
+					break;
 			}
 		}else
 		{	if (memcmp(token, "log-server-address",18) == 0) cReadMode = 1;
@@ -15229,6 +15247,7 @@ BOOL CGame::bReadLoginConfigFile(char * cFn)
 			if (memcmp(token, "debug-mouse",11) == 0)   cReadMode = 4;
 			if (memcmp(token, "windowed",9) == 0)   cReadMode = 5;
 			if (memcmp(token, "new-resolution",14) == 0)   cReadMode = 6;
+			if (memcmp(token, "new-camera",10) == 0)   cReadMode = 7;
 		}
 		token = strtok( NULL, seps );
 	}
@@ -16568,7 +16587,7 @@ BOOL CGame::bEffectFrameCounter()
 }
 
 
-BOOL   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, BOOL bTrans, DWORD dwTime, int msX, int msY)
+BOOL   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, BOOL bTrans, DWORD dwTime, int msX, int msY, bool frame_omision)
 {int dx, dy;
  int iBodyIndex, iHairIndex, iUndiesIndex, iArmArmorIndex, iBodyArmorIndex, iPantsIndex, iBootsIndex, iWeaponIndex, iShieldIndex, iHelmIndex, iR, iG, iB, iMantleIndex;
  BOOL bInv = FALSE;
@@ -16699,16 +16718,21 @@ BOOL   CGame::DrawObject_OnRun(int indexX, int indexY, int sX, int sY, BOOL bTra
 	}
 	dx = 0;
 	dy = 0;
+
+	bool value = _new_camera ? frame_omision : 0;
+	int value_2 = _new_camera ? 30 : 28;
+
 	switch (_tmp_cDir) {
-	case 1 : dy = 28 - (_tmp_cFrame<<2); break;
-	case 2 : dy = 28 - (_tmp_cFrame<<2); dx = (_tmp_cFrame<<2) - 28; break;
-	case 3 : dx = (_tmp_cFrame<<2) - 28; break;
-	case 4 : dx = (_tmp_cFrame<<2) - 28; dy = (_tmp_cFrame<<2) - 28; break;
-	case 5 : dy = (_tmp_cFrame<<2) - 28; break;
-	case 6 : dy = (_tmp_cFrame<<2) - 28; dx = 28 - (_tmp_cFrame<<2); break;
-	case 7 : dx = 28 - (_tmp_cFrame<<2); break;
-	case 8 : dx = 28 - (_tmp_cFrame<<2); dy = 28 - (_tmp_cFrame<<2); break;
+	case 1: dy = value_2 - (_tmp_cFrame << 2) - value; break;
+	case 2: dy = value_2 - (_tmp_cFrame << 2) - value; dx = (_tmp_cFrame << 2) + value - value_2; break;
+	case 3: dx = (_tmp_cFrame << 2) + value - value_2; break;
+	case 4: dx = (_tmp_cFrame << 2) + value - value_2; dy = (_tmp_cFrame << 2) + value - value_2; break;
+	case 5: dy = (_tmp_cFrame << 2) + value - value_2; break;
+	case 6: dy = (_tmp_cFrame << 2) + value - value_2	; dx = value_2 - (_tmp_cFrame << 2) - value; break;
+	case 7: dx = value_2 - (_tmp_cFrame << 2) - value; break;
+	case 8: dx = value_2 - (_tmp_cFrame << 2) - value; dy = value_2 - (_tmp_cFrame << 2) - value; break;
 	}
+
 	if (m_bIsCrusadeMode || m_bIsAvatarMode) DrawObjectFOE(sX+dx, sY+dy, _tmp_cFrame);
 
 	if (_tmp_iEffectType != 0)
@@ -31220,6 +31244,14 @@ BOOL CGame::bCheckLocalChatCommand(char * pMsg)
 	}else if (memcmp(cBuff, "/shoff", 6) == 0)
 	{	m_bShout = FALSE;
 	    AddEventList(BCHECK_LOCAL_CHAT_COMMAND9, 10); //Unable to chat in public."
+		return TRUE;
+	}
+	else if (memcmp(cBuff, "/togglecamera", 13) == 0)
+	{	
+		_new_camera = !_new_camera;
+		
+		m_pMapData->SetupHumanSprite();
+	    AddEventList(format("New camera: {}", _new_camera ? "On" : "Off").data(), 10);
 		return TRUE;
 	}
 	if (memcmp(cBuff, "/tooff", 6) == 0)

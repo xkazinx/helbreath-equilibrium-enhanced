@@ -39,6 +39,8 @@ public:
 		HeapFree(GetProcessHeap(), HEAP_NO_SERIALIZE, mem);
 	};
 
+	void SetupHumanSprite();
+
 	CMapData(class CGame * pGame);
 	virtual ~CMapData();
 	void Init();
