@@ -24,8 +24,9 @@ Activate MainServer
 Activate WorldServer
 
 Go to "helbreath-equilibrium-enhanced\Client\Helbreath\", copy "LOGIN.CFG.tpl", and rename the copy to "LOGIN.CFG"
+Make sure windows is displaying file extensions to successfully rename "LOGIN.CFG.tpl" to "LOGIN.CFG", you can enable that with this information (Search for windows 11 if you have that Operative System): https://www.bing.com/search?pglt=673&q=show+extensions+windows+10
 
-Read the instructions in LOGIN.CFG for LAN or INTERNET
+Open and read the instructions in LOGIN.CFG to configure LAN or INTERNET
 Open Client.exe
 
 Account: master
