@@ -1,0 +1,6 @@
+Fix bag mess
+Add 800x600
+	Test icon panel
+Check cities and separate them as default
+Add compatibility flags and send for testing
+	Add 16BITCOLOR as flag for windowed
