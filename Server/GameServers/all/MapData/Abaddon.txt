@@ -1,0 +1,59 @@
+[MAP-INFO]
+
+map-location  = abaddon
+initial-point = 1  168 170
+
+//-Teleportation-Set----SX-----SY-----DestMapName---------DX-----DY----Dir---;
+
+//-WayPoint-Set---------Num-----X-----Y----;
+
+ApocalypseMap 		= 1
+ApocalypseMobGenType    = 2
+
+RecallImpossible        = 1
+not-permanent-map	= 1
+
+//------------------------NpcID---RECT----------------------
+ApocalypseBossMob       = 81      79 76 136 107
+
+//------------------------RECT-----------------TargetMap---TargetCoord
+DynamicGateCoord	= 167 169 168 170        middleland	   -1  -1
+DynamicGateType		= 3
+// Will spawn Abaddon and open Gate when all monsters dead
+
+
+//-No-Attack-Area----------Num-----RECT-------------
+no-attack-area           = 1       164 166 172 174
+
+//------------------------Num-Type-waypoints--------------Mob-MobNum
+//gagoyle
+spot-mob-generator	= 1   1    74 23 138 52           52  15
+spot-mob-generator	= 2   1    30 115 86 146          52  10
+
+//tiger
+spot-mob-generator	= 3   1    120 43 174 73          50  15
+
+//Barlog
+spot-mob-generator	= 4   1    172 45 169 77            70  20
+
+//mino
+spot-mob-generator	= 5   1    91 41 141 20         78  20
+
+//Claw-Turtle
+spot-mob-generator	= 6   1    71 64 143 112          72  20
+//fyv-wyver-
+spot-mob-generator	= 7  1    71 64 143 112          73  3
+//wyvern
+spot-mob-generator	= 8  1    90 128 45 97          66  2
+//giant plant
+spot-mob-generator	= 9  1    71 64 143 112          76  20
+//hellclaw
+spot-mob-generator	= 10  1    103 115 106 108          49  2
+
+
+maximum-object		= 200
+
+CitizenLimit		= 1
+fixed-dayornight-mode	= 1
+
+[END-MAP-INFO]

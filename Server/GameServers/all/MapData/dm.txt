@@ -1,0 +1,10 @@
+[MAP-INFO]
+
+map-location  = dm
+initial-point = 1  45 33
+initial-point = 2  36 39
+
+maximum-object = 500
+fixed-dayornight-mode = 1
+
+[END-MAP-INFO]

@@ -1,0 +1,77 @@
+[MAP-INFO]
+
+map-location  = icebound
+level-limit = 101
+
+fixed-dayornight-mode = 0
+
+initial-point = 1  264 260
+
+//------------------------RECT---------TargetMap------TargetCoord
+DynamicGateCoord	= 89 31 90 32        druncncity	   -1  -1
+DynamicGateType	= 1
+
+//-Teleportation-Set----SX-----SY-----DestMapName---------DX-----DY----Dir---;
+
+teleport-loc     =     260    264     middleland          455    279   5
+teleport-loc     =     261    264     middleland          455    279   5
+teleport-loc     =     262    264     middleland          455    279   5
+teleport-loc     =     263    264     middleland          455    279   5
+teleport-loc     =     264    264     middleland          455    279   5
+teleport-loc     =     265    264     middleland          455    279   5
+teleport-loc     =     266    264     middleland          455    279   5
+teleport-loc     =     267    264     middleland          455    279   5
+teleport-loc     =     268    264     middleland          455    279   5
+teleport-loc     =     269    264     middleland          455    279   5
+
+
+//-WayPoint-Set---------Num-----X-----Y----;
+waypoint          =     0       55    94
+waypoint          =     1       113   76
+waypoint          =     2       156   104
+waypoint          =     3       187   140
+waypoint          =     4       161   164
+waypoint          =     5       135   169
+waypoint          =     6       109   191
+waypoint          =     7       98    162
+waypoint          =     8       64    137
+waypoint          =     9       198   105
+
+//-No-Attack-Area----------Num-----RECT-------------
+no-attack-area           = 1       258 259 272 263
+
+maximum-object		= 500
+random-mob-generator	= 1  14
+
+//-----------------------Num-Type-RECT---------------Mob-MobNum
+
+//icegolem
+spot-mob-generator	= 1   1    186   223  208  248   	65	15
+spot-mob-generator	= 2   1    121   159  102  178   	65	15
+
+//rudolph
+spot-mob-generator	= 3   1    239   133  231  158   	61	15
+
+//direboar
+spot-mob-generator	= 4   1    215   32  213  55   	62	15
+
+//beholder
+spot-mob-generator	= 5   1    75   210  77  228   	        53	15
+spot-mob-generator	= 6   1    166   116  194  132  	53	15
+
+//frost
+spot-mob-generator	= 7   1    61   107  87  128   	        63	15
+spot-mob-generator	= 8   1    250   85  266  104  	63	10
+
+//wyvern
+spot-mob-generator	= 9   1    53   30  71  62   	        66	1
+
+//tiger
+spot-mob-generator	= 10   1    43   54  76  67  	50	1
+
+//unicorns
+spot-mob-generator	= 11   1    43   54  76  67  	32	15
+
+
+
+[END-MAP-INFO]
