@@ -96,15 +96,16 @@ bool CxImage::EncodeSafeCheck(CxFile *hFile)
  * \param imagetype: file format, see ENUM_CXIMAGE_FORMATS
  * \return true if everything is ok
  */
-bool CxImage::Save(const TCHAR * filename, DWORD imagetype)
+bool CxImage::Save(const char * filename, DWORD imagetype)
+//bool CxImage::Save(const TCHAR * filename, DWORD imagetype)
 {
 	FILE* hFile;	//file handle to write the image
 
-#ifdef WIN32
+/*#ifdef WIN32
 	if ((hFile=_tfopen(filename,_T("wb")))==NULL)  return false;	// For UNICODE support
-#else
+#else*/
 	if ((hFile=fopen(filename,"wb"))==NULL)  return false;
-#endif
+//#endif
 
 	bool bOK = Encode(hFile,imagetype);
 	fclose(hFile);
@@ -464,8 +465,8 @@ bool CxImage::Encode2RGBA(CxFile *hFile)
  * \param imagetype: file format, see ENUM_CXIMAGE_FORMATS
  * \return true if everything is ok
  */
-bool CxImage::Load(const TCHAR * filename, DWORD imagetype)
-//bool CxImage::Load(const char * filename, DWORD imagetype)
+//bool CxImage::Load(const TCHAR * filename, DWORD imagetype)
+bool CxImage::Load(const char * filename, DWORD imagetype)
 {
 	/*FILE* hFile;	//file handle to read the image
 	if ((hFile=fopen(filename,"rb"))==NULL)  return false;
@@ -477,11 +478,11 @@ bool CxImage::Load(const TCHAR * filename, DWORD imagetype)
 	if ( imagetype > 0 && imagetype < CMAX_IMAGE_FORMATS ){
 		FILE* hFile;	//file handle to read the image
 
-#ifdef WIN32
+/*#ifdef WIN32
 		if ((hFile=_tfopen(filename,_T("rb")))==NULL)  return false;	// For UNICODE support
-#else
+#else*/
 		if ((hFile=fopen(filename,"rb"))==NULL)  return false;
-#endif
+//#endif
 
 		bOK = Decode(hFile,imagetype);
 		fclose(hFile);
@@ -494,11 +495,11 @@ bool CxImage::Load(const TCHAR * filename, DWORD imagetype)
 	// if failed, try automatic recognition of the file...
 	FILE* hFile;
 
-#ifdef WIN32
+/*#ifdef WIN32
 	if ((hFile=_tfopen(filename,_T("rb")))==NULL)  return false;	// For UNICODE support
-#else
+#else*/
 	if ((hFile=fopen(filename,"rb"))==NULL)  return false;
-#endif
+//#endif
 
 	bOK = Decode(hFile,CXIMAGE_FORMAT_UNKNOWN);
 	fclose(hFile);
@@ -590,7 +591,7 @@ CxImage::CxImage(const TCHAR * filename, DWORD imagetype)
 //CxImage::CxImage(const char * filename, DWORD imagetype)
 {
 	Startup(imagetype);
-	Load(filename,imagetype);
+	Load((char*)filename,imagetype);
 }
 ////////////////////////////////////////////////////////////////////////////////
 /**

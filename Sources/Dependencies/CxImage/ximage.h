@@ -408,8 +408,8 @@ public:
 	bool LoadResource(HRSRC hRes, DWORD imagetype, HMODULE hModule=NULL);
 #endif
 	// For UNICODE support: char -> TCHAR
-	bool Load(const TCHAR* filename, DWORD imagetype=0);
-	//bool Load(const char * filename, DWORD imagetype=0);
+	//bool Load(const TCHAR* filename, DWORD imagetype=0);
+	bool Load(const char * filename, DWORD imagetype=0);
 	bool Decode(FILE * hFile, DWORD imagetype);
 	bool Decode(CxFile * hFile, DWORD imagetype);
 	bool Decode(BYTE * buffer, DWORD size, DWORD imagetype);
@@ -428,8 +428,8 @@ public:
 	//bool Save(LPCWSTR filename, DWORD imagetype=0);
 #endif
 	// For UNICODE support: char -> TCHAR
-	bool Save(const TCHAR* filename, DWORD imagetype);
-	//bool Save(const char * filename, DWORD imagetype=0);
+	//bool Save(const TCHAR* filename, DWORD imagetype);
+	bool Save(const char * filename, DWORD imagetype=0);
 	bool Encode(FILE * hFile, DWORD imagetype);
 	bool Encode(CxFile * hFile, DWORD imagetype);
 	bool Encode(CxFile * hFile, CxImage ** pImages, int pagecount, DWORD imagetype);
