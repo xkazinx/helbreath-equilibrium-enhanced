@@ -37860,8 +37860,10 @@ void CGame::FishGenerator()
 				case 18: 
 				case 19: 
 				case 20: 
-					strcpy(cItemName, "SuperPowerGreenPotion"); 
-					sDifficulty = iDice(5,4) + 20; 
+					strcpy(cItemName, "PowerGreenPotion"); 
+					sDifficulty = iDice(5,4) + 10; //15..30
+					//strcpy(cItemName, "SuperPowerGreenPotion");  // bugs because it's a long name
+					//sDifficulty = iDice(5,4) + 20; 
 					break; 
 				case 21: 
 				case 22: 
