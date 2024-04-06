@@ -3,7 +3,7 @@ Account-generated:  Time(2003/19/8/19/16)  IP(127.0.0.0)
 account-name     = master
 
 [PASSWORD]
-account-password = 2691TUOA
+account-password = asd
 
 [ACCOUNT-STATUS]
 account-valid-time = 0
