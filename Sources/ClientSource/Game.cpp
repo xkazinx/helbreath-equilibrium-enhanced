@@ -3034,8 +3034,8 @@ void CGame::UpdateScreen_OnMainMenu()
 //	if ((msX >= 73) && (msY >= 192) && (msX <= 281) && (msY <= 230)) m_cCurFocus = 2;
 //	if ((msX >= 120) && (msY >= 231) && (msX <= 239) && (msY <= 262)) m_cCurFocus = 3;
 
-//	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,639,479);
-//	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,639,479);
+//	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
+//	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 
 	if (m_DDraw.iFlip() == DDERR_SURFACELOST) RestoreSprites();
 }
@@ -4336,9 +4336,9 @@ void CGame::bItemDrop_ExternalScreen(char cItemID, short msX, short msY)
 					tX = msX - 117;
 					tY = msY - 50;
 					if (tX < 0) tX = 0;
-					if ((tX + 235) > 639) tX = 639 - 235;
+					if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 					if (tY < 0) tY = 0;
-					if ((tY + 100) > 479) tY = 479 - 100;
+					if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 					m_stDialogBoxInfo[20].sX  = tX;
 					m_stDialogBoxInfo[20].sY  = tY;
 
@@ -4357,9 +4357,9 @@ void CGame::bItemDrop_ExternalScreen(char cItemID, short msX, short msY)
 					tX = msX - 117;
 					tY = msY - 50;
 					if (tX < 0) tX = 0;
-					if ((tX + 235) > 639) tX = 639 - 235;
+					if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 					if (tY < 0) tY = 0;
-					if ((tY + 100) > 479) tY = 479 - 100;
+					if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 					m_stDialogBoxInfo[20].sX  = tX;
 					m_stDialogBoxInfo[20].sY  = tY;
 
@@ -4379,9 +4379,9 @@ void CGame::bItemDrop_ExternalScreen(char cItemID, short msX, short msY)
 					tX = msX - 117;
 					tY = msY - 50;
 					if (tX < 0) tX = 0;
-					if ((tX + 235) > 639) tX = 639 - 235;
+					if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 					if (tY < 0) tY = 0;
-					if ((tY + 100) > 479) tY = 479 - 100;
+					if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 					m_stDialogBoxInfo[20].sX  = tX;
 					m_stDialogBoxInfo[20].sY  = tY;
 
@@ -15239,6 +15239,11 @@ BOOL CGame::bReadLoginConfigFile(char * cFn)
 					_new_camera = (bool)(atoi(token) > 0);
 					cReadMode = 0;
 					break;
+
+				case 8:
+					_new_speed = (bool)(atoi(token) > 0);
+					cReadMode = 0;
+					break;
 			}
 		}else
 		{	if (memcmp(token, "log-server-address",18) == 0) cReadMode = 1;
@@ -15248,6 +15253,7 @@ BOOL CGame::bReadLoginConfigFile(char * cFn)
 			if (memcmp(token, "windowed",9) == 0)   cReadMode = 5;
 			if (memcmp(token, "new-resolution",14) == 0)   cReadMode = 6;
 			if (memcmp(token, "new-camera",10) == 0)   cReadMode = 7;
+			if (memcmp(token, "new-speed",9) == 0)   cReadMode = 8;
 		}
 		token = strtok( NULL, seps );
 	}
@@ -21442,8 +21448,8 @@ void CGame::UpdateScreen_OnSelectCharacter()
 		}
 	}
 
-//	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,639,479);
-//	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,639,479);
+//	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
+//	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 
 	if (m_DDraw.iFlip() == DDERR_SURFACELOST) RestoreSprites();
 }
@@ -24795,7 +24801,7 @@ void CGame::UpdateScreen_OnConnecting()
 	}
 	m_bIsHideLocalCursor = FALSE;
 
-	m_DDraw.DrawShadowBox(0,0,639,479);
+	m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 	DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162,125,2);
 	wsprintf(G_cTxt, "Connecting to Server... %3dSec", (dwTime - m_dwTime)/1000);
 	PutString_SprFont(172 + 35, 190, G_cTxt, 7,0,0);
@@ -25459,8 +25465,8 @@ void CGame::UpdateScreen_OnCreateNewCharacter()
 		PutAlignedString(370, 580, 345 , UPDATE_SCREEN_ON_CREATE_NEW_CHARACTER52);
 	}
 
-//	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,639,479);
-//	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,639,479);
+//	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
+//	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 
 	if (m_DDraw.iFlip() == DDERR_SURFACELOST) RestoreSprites();
 }
@@ -25623,8 +25629,8 @@ void CGame::UpdateScreen_OnAgreement()
 	DrawVersion();
 	m_pSprite[DEF_SPRID_MOUSECURSOR]->PutSpriteFast(msX, msY, 0, dwTime);
 
-//	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,639,479);
-//	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,639,479);
+//	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
+//	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 
 	if (m_DDraw.iFlip() == DDERR_SURFACELOST) RestoreSprites();
 }
@@ -26041,8 +26047,8 @@ void CGame::UpdateScreen_OnCreateNewAccount()
 	if ((msX >= 392) && (msX <= 465) && (msY >= 396) && (msY <= 417)) m_cCurFocus = 8;  //13
 	if ((msX >= 488) && (msX <= 561) && (msY >= 396) && (msY <= 417)) m_cCurFocus = 9; //14
 
-//	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,639,479);
-//	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,639,479);
+//	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
+//	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 
 	if (m_DDraw.iFlip() == DDERR_SURFACELOST) RestoreSprites();
 }
@@ -26345,8 +26351,8 @@ void CGame::UpdateScreen_OnSelectServer()
 	if ((msX >= 130) && (msX <= 295) && (msY >= 199) && (msY <= 225)) m_cCurFocus = 2;
 	if ((msX >= 256) && (msX <= 331) && (msY >= 279) && (msY <= 308)) m_cCurFocus = 3;
 
-//	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,639,479);
-//	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,639,479);
+//	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
+//	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 
 	if (m_DDraw.iFlip() == DDERR_SURFACELOST) RestoreSprites();
 }
@@ -26995,8 +27001,8 @@ void CGame::UpdateScreen_OnQuit()
 		return;
 	}
 
-//	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,639,479);
-//	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,639,479);
+//	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
+//	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 
 	if (m_DDraw.iFlip() == DDERR_SURFACELOST) RestoreSprites();
 }
@@ -27037,11 +27043,11 @@ void CGame::UpdateScreen_OnQueryForceLogin()
 	m_DInput.UpdateMouseState(&msX, &msY, &msZ, &cLB, &cRB);
 	UpdateScreen_OnSelectCharacter(0, 0, 0, 0);
 	if ((m_cGameModeCount >= 0) && (m_cGameModeCount < 6)) {
-		m_DDraw.DrawShadowBox(0,0,639,479);
+		m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 	}
 	else if (m_cGameModeCount >= 6) {
-		m_DDraw.DrawShadowBox(0,0,639,479);
-		m_DDraw.DrawShadowBox(0,0,639,479);
+		m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
+		m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 	}
 
 	DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162, 130, 2);
@@ -27362,7 +27368,7 @@ void CGame::UpdateScreen_OnWaitingResponse()
 	}
 	m_bIsHideLocalCursor = FALSE;
 
-	m_DDraw.DrawShadowBox(0,0, 639,479);
+	m_DDraw.DrawShadowBox(0,0, m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 	DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162,125,2);
 	PutString_SprFont(172 + 44 -17, 190, "Connected. Waiting for response...", 7,0,0);
 
@@ -27415,10 +27421,10 @@ void CGame::UpdateScreen_OnQueryDeleteCharacter()
 	m_DInput.UpdateMouseState(&msX, &msY, &msZ, &cLB, &cRB);
 	UpdateScreen_OnSelectCharacter(0, 0, 500, 70);
 	if ((m_cGameModeCount >= 0) && (m_cGameModeCount < 6)) 
-	{	m_DDraw.DrawShadowBox(0,0,639,479);
+	{	m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 	}else if (m_cGameModeCount >= 6) 
-	{	m_DDraw.DrawShadowBox(0,0,639,479);
-		m_DDraw.DrawShadowBox(0,0,639,479);
+	{	m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
+		m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 	}
 
 	DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162,125,2);
@@ -29453,7 +29459,7 @@ void CGame::UpdateScreen_OnLogResMsg()
 		break;
 	}
 
-	m_DDraw.DrawShadowBox(0,0,639,479);
+	m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 
 	DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 162,125,2);
 
@@ -30354,7 +30360,7 @@ void CGame::UpdateScreen_OnChangePassword()
 	m_DDraw.ClearBackB4();
 
 	UpdateScreen_OnSelectCharacter(0, 0, 0, 0, TRUE);
-	m_DDraw.DrawShadowBox(0,0,639,479);//SelectCharacter
+	m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);//SelectCharacter
 
 	DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME4, 153, 112, 0);
 	DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_TEXT , 153, 112, 13);
@@ -32319,9 +32325,9 @@ void CGame::UpdateScreen_OnGame()
 								tX = msX - 117;
 								tY = msY - 50;
 								if (tX < 0) tX = 0;
-								if ((tX + 235) > 639) tX = 639 - 235;
+								if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 								if (tY < 0) tY = 0;
-								if ((tY + 100) > 479) tY = 479 - 100;
+								if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 								m_stDialogBoxInfo[20].sX  = tX;
 								m_stDialogBoxInfo[20].sY  = tY;
 
@@ -32339,9 +32345,9 @@ void CGame::UpdateScreen_OnGame()
 								tX = msX - 117;
 								tY = msY - 50;
 								if (tX < 0) tX = 0;
-								if ((tX + 235) > 639) tX = 639 - 235;
+								if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 								if (tY < 0) tY = 0;
-								if ((tY + 100) > 479) tY = 479 - 100;
+								if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 
 								m_stDialogBoxInfo[20].sX  = tX;
 								m_stDialogBoxInfo[20].sY  = tY;
@@ -32359,9 +32365,9 @@ void CGame::UpdateScreen_OnGame()
 								tX = msX - 117;
 								tY = msY - 50;
 								if (tX < 0) tX = 0;
-								if ((tX + 235) > 639) tX = 639 - 235;
+								if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 								if (tY < 0) tY = 0;
-								if ((tY + 100) > 479) tY = 479 - 100;
+								if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 								m_stDialogBoxInfo[20].sX  = tX;
 								m_stDialogBoxInfo[20].sY  = tY;
 
@@ -32678,8 +32684,8 @@ void CGame::UpdateScreen_OnGame()
 	//Snoopy: Added diag "LEVEL UP" right down
 	if (m_iLU_Point >0) PutString_SprFont(560, 390, "Level Up", 250, 250, 0);
 
-	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,639,479);
-	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,639,479);
+	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
+	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 
 	if (m_bIsObserverMode == TRUE)
 	{	m_DDraw.PutPixel(msX, msY,   255,255,255);
@@ -33123,19 +33129,19 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
 	if ((m_bIsObserverCommanded == FALSE) && (m_bIsObserverMode == TRUE))
 	{	if ((msX == 0) && (msY == 0) && (m_sViewDstX > 32*21) && (m_sViewDstY > 32*16)) bSendCommand(MSGID_REQUEST_PANNING, NULL, 8, NULL, NULL, NULL, NULL);
 		else
-		if ((msX == 639) && (msY == 0) && (m_sViewDstX < 32*m_pMapData->m_sMapSizeX - 32*21) && (m_sViewDstY > 32*16)) bSendCommand(MSGID_REQUEST_PANNING, NULL, 2, NULL, NULL, NULL, NULL);
+		if ((msX == m_DDraw._res_x - 1) && (msY == 0) && (m_sViewDstX < 32*m_pMapData->m_sMapSizeX - 32*21) && (m_sViewDstY > 32*16)) bSendCommand(MSGID_REQUEST_PANNING, NULL, 2, NULL, NULL, NULL, NULL);
 		else
-		if ((msX == 639) && (msY == 479) && (m_sViewDstX < 32*m_pMapData->m_sMapSizeX - 32*21) && (m_sViewDstY < 32*m_pMapData->m_sMapSizeY - 32*16)) bSendCommand(MSGID_REQUEST_PANNING, NULL, 4, NULL, NULL, NULL, NULL);
+		if ((msX == m_DDraw._res_x - 1) && (msY == m_DDraw._res_y - 1) && (m_sViewDstX < 32*m_pMapData->m_sMapSizeX - 32*21) && (m_sViewDstY < 32*m_pMapData->m_sMapSizeY - 32*16)) bSendCommand(MSGID_REQUEST_PANNING, NULL, 4, NULL, NULL, NULL, NULL);
 		else
-		if ((msX == 0) && (msY == 479)) bSendCommand(MSGID_REQUEST_PANNING, NULL, 6, NULL, NULL, NULL, NULL);
+		if ((msX == 0) && (msY == m_DDraw._res_y - 1)) bSendCommand(MSGID_REQUEST_PANNING, NULL, 6, NULL, NULL, NULL, NULL);
 		else
 		if ((msX == 0) && (m_sViewDstX > 32*21)) bSendCommand(MSGID_REQUEST_PANNING, NULL, 7, NULL, NULL, NULL, NULL);
 		else
-		if ((msX == 639) && (m_sViewDstX < 32*m_pMapData->m_sMapSizeX - 32*21)) bSendCommand(MSGID_REQUEST_PANNING, NULL, 3, NULL, NULL, NULL, NULL);
+		if ((msX == m_DDraw._res_x - 1) && (m_sViewDstX < 32*m_pMapData->m_sMapSizeX - 32*21)) bSendCommand(MSGID_REQUEST_PANNING, NULL, 3, NULL, NULL, NULL, NULL);
 		else
 		if ((msY == 0) && (m_sViewDstY > 32*16)) bSendCommand(MSGID_REQUEST_PANNING, NULL, 1, NULL, NULL, NULL, NULL);
 		else
-		if ((msY == 479) && (m_sViewDstY < 32*m_pMapData->m_sMapSizeY - 32*16)) bSendCommand(MSGID_REQUEST_PANNING, NULL, 5, NULL, NULL, NULL, NULL);
+		if ((msY == m_DDraw._res_y - 1) && (m_sViewDstY < 32*m_pMapData->m_sMapSizeY - 32*16)) bSendCommand(MSGID_REQUEST_PANNING, NULL, 5, NULL, NULL, NULL, NULL);
 		else return;
 
 		m_bIsObserverCommanded = TRUE;
@@ -33627,9 +33633,9 @@ CP_SKIPMOUSEBUTTONSTATUS:;
 								tX = msX - 117;
 								tY = msY - 50;
 								if (tX < 0) tX = 0;
-								if ((tX + 235) > 639) tX = 639 - 235;
+								if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 								if (tY < 0) tY = 0;
-								if ((tY + 100) > 479) tY = 479 - 100;
+								if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 								m_stDialogBoxInfo[20].sX  = tX;
 								m_stDialogBoxInfo[20].sY  = tY;
 								m_stDialogBoxInfo[20].sV3 = 15;
@@ -33644,9 +33650,9 @@ CP_SKIPMOUSEBUTTONSTATUS:;
 								tX = msX - 117;
 								tY = msY - 50;
 								if (tX < 0) tX = 0;
-								if ((tX + 235) > 639) tX = 639 - 235;
+								if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 								if (tY < 0) tY = 0;
-								if ((tY + 100) > 479) tY = 479 - 100;
+								if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 								m_stDialogBoxInfo[20].sX  = tX;
 								m_stDialogBoxInfo[20].sY  = tY;
 								m_stDialogBoxInfo[20].sV3 = 19;
@@ -33661,9 +33667,9 @@ CP_SKIPMOUSEBUTTONSTATUS:;
 								tX = msX - 117;
 								tY = msY - 50;
 								if (tX < 0) tX = 0;
-								if ((tX + 235) > 639) tX = 639 - 235;
+								if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 								if (tY < 0) tY = 0;
-								if ((tY + 100) > 479) tY = 479 - 100;
+								if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 								m_stDialogBoxInfo[20].sX  = tX;
 								m_stDialogBoxInfo[20].sY  = tY;
 								m_stDialogBoxInfo[20].sV3 = 20;
@@ -33682,9 +33688,9 @@ CP_SKIPMOUSEBUTTONSTATUS:;
 								tX = msX - 117;
 								tY = msY - 50;
 								if (tX < 0) tX = 0;
-								if ((tX + 235) > 639) tX = 639 - 235;
+								if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 								if (tY < 0) tY = 0;
-								if ((tY + 100) > 479) tY = 479 - 100;
+								if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 								m_stDialogBoxInfo[20].sX  = tX;
 								m_stDialogBoxInfo[20].sY  = tY;
 								m_stDialogBoxInfo[20].sV3 = 24;
@@ -33703,9 +33709,9 @@ CP_SKIPMOUSEBUTTONSTATUS:;
 								tX = msX - 117;
 								tY = msY - 50;
 								if (tX < 0) tX = 0;
-								if ((tX + 235) > 639) tX = 639 - 235;
+								if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 								if (tY < 0) tY = 0;
-								if ((tY + 100) > 479) tY = 479 - 100;
+								if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 								m_stDialogBoxInfo[20].sX  = tX;
 								m_stDialogBoxInfo[20].sY  = tY;
 								m_stDialogBoxInfo[20].sV3 = 25;
@@ -33720,9 +33726,9 @@ CP_SKIPMOUSEBUTTONSTATUS:;
 								tX = msX - 117;
 								tY = msY - 50;
 								if (tX < 0) tX = 0;
-								if ((tX + 235) > 639) tX = 639 - 235;
+								if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 								if (tY < 0) tY = 0;
-								if ((tY + 100) > 479) tY = 479 - 100;
+								if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 								m_stDialogBoxInfo[20].sX  = tX;
 								m_stDialogBoxInfo[20].sY  = tY;
 								m_stDialogBoxInfo[20].sV3 = 26;
@@ -33736,9 +33742,9 @@ CP_SKIPMOUSEBUTTONSTATUS:;
 								tX = msX - 117;
 								tY = msY - 50;
 								if (tX < 0) tX = 0;
-								if ((tX + 235) > 639) tX = 639 - 235;
+								if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 								if (tY < 0) tY = 0;
-								if ((tY + 100) > 479) tY = 479 - 100;
+								if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 								m_stDialogBoxInfo[20].sX  = tX;
 								m_stDialogBoxInfo[20].sY  = tY;
 								m_stDialogBoxInfo[20].sV3 = 21;
@@ -33752,9 +33758,9 @@ CP_SKIPMOUSEBUTTONSTATUS:;
 								tX = msX - 117;
 								tY = msY - 50;
 								if (tX < 0) tX = 0;
-								if ((tX + 235) > 639) tX = 639 - 235;
+								if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 								if (tY < 0) tY = 0;
-								if ((tY + 100) > 479) tY = 479 - 100;
+								if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 								m_stDialogBoxInfo[20].sX  = tX;
 								m_stDialogBoxInfo[20].sY  = tY;
 								m_stDialogBoxInfo[20].sV3 = sObjectType;
@@ -33767,9 +33773,9 @@ CP_SKIPMOUSEBUTTONSTATUS:;
 								tX = msX - 117;
 								tY = msY - 50;
 								if (tX < 0) tX = 0;
-								if ((tX + 235) > 639) tX = 639 - 235;
+								if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 								if (tY < 0) tY = 0;
-								if ((tY + 100) > 479) tY = 479 - 100;
+								if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 								m_stDialogBoxInfo[20].sX  = tX;
 								m_stDialogBoxInfo[20].sY  = tY;
 								m_stDialogBoxInfo[20].sV3 = 32;
@@ -33783,9 +33789,9 @@ CP_SKIPMOUSEBUTTONSTATUS:;
 								tX = msX - 117;
 								tY = msY - 50;
 								if (tX < 0) tX = 0;
-								if ((tX + 235) > 639) tX = 639 - 235;
+								if ((tX + 235) > m_DDraw._res_x - 1) tX = m_DDraw._res_x - 1 - 235;
 								if (tY < 0) tY = 0;
-								if ((tY + 100) > 479) tY = 479 - 100;
+								if ((tY + 100) > m_DDraw._res_y - 1) tY = m_DDraw._res_y - 1 - 100;
 								m_stDialogBoxInfo[20].sX  = tX;
 								m_stDialogBoxInfo[20].sY  = tY;
 								m_stDialogBoxInfo[20].sV3 = 90;

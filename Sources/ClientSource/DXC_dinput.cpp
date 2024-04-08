@@ -104,8 +104,8 @@ void DXC_dinput::UpdateMouseState(short * pX, short * pY, short * pZ, char * pLB
 	if( (short)dims.lZ != 0 )m_sZ = (short)dims.lZ;
 	if (m_sX < 0) m_sX = 0;
 	if (m_sY < 0) m_sY = 0;
-	if (m_sX > 639) m_sX = 639;
-	if (m_sY > 479) m_sY = 479;
+	if (m_sX > G_pGame->m_DDraw._res_x - 1) m_sX = G_pGame->m_DDraw._res_x - 1;
+	if (m_sY > G_pGame->m_DDraw._res_y - 1) m_sY = G_pGame->m_DDraw._res_y - 1;
 	*pX = m_sX;
 	*pY = m_sY;
 	*pZ = m_sZ;

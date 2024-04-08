@@ -52643,7 +52643,10 @@ BOOL CGame::bCheckClientAttackFrequency(int iClientH, DWORD dwClientTime, DWORD 
 //							FALSE Don't block
 /////////////////////////////////////////////////////////////////////////////////////// 
 BOOL CGame::bCheckClientMoveFrequency(int iClientH, DWORD dwClientTime, DWORD dwMsgTime, int iMoveType) //1=run, 2=walk, 0= Stop, 7:Fly
-{	if (m_pClientList[iClientH] == NULL) return FALSE;
+{	
+	return FALSE;
+	float mod = 2.5;
+	if (m_pClientList[iClientH] == NULL) return FALSE;
 	//if (m_pClientList[iClientH]->m_iAdminUserLevel > 0) return TRUE;
 	m_pClientList[iClientH]->m_iAttackCount  = 0;
 	m_pClientList[iClientH]->m_iDashCount    = 0;
@@ -52725,7 +52728,7 @@ BOOL CGame::bCheckClientMoveFrequency(int iClientH, DWORD dwClientTime, DWORD dw
 		case 5: 
 			// Hum.... last msg sent before previous one!				
 			if (dwClientTime <= m_pClientList[iClientH]->m_dwWalkLAT)
-			{	if (dwMsgTime > m_pClientList[iClientH]->m_dwWalkLATS +400)
+			{	if (dwMsgTime > m_pClientList[iClientH]->m_dwWalkLATS +int(400 * mod))
 				{	// But server side seems normal: Big Lag effect or SpeedHack!
 					wsprintf(G_cTxt, "Walking Speed:     PC(%s) -  Negative Client gap, just stopped to SpeedHack. (Disc.) \tIP(%s)"					
 						, m_pClientList[iClientH]->m_cCharName
@@ -52739,8 +52742,8 @@ BOOL CGame::bCheckClientMoveFrequency(int iClientH, DWORD dwClientTime, DWORD dw
 				}
 			}			
 			// Stopped walking...restart mesures from this msg		
-			if (   ((dwClientTime - m_pClientList[iClientH]->m_dwWalkLAT) > 1000)
-				&& ((dwMsgTime - m_pClientList[iClientH]->m_dwWalkLATS) > 700))
+			if (   ((dwClientTime - m_pClientList[iClientH]->m_dwWalkLAT) > int(1000*mod))
+				&& ((dwMsgTime - m_pClientList[iClientH]->m_dwWalkLATS) > int(700*mod)))
 			{	if (m_pClientList[iClientH]->m_bMonitorThisChar)
 				{	wsprintf(G_cTxt, "Walking Speed:     PC(%s) (C:%dms S:%dms) - Stopped walking."				
 						, m_pClientList[iClientH]->m_cCharName
@@ -52802,7 +52805,7 @@ BOOL CGame::bCheckClientMoveFrequency(int iClientH, DWORD dwClientTime, DWORD dw
 		case 6: // last determination	
 			// Hum.... last msg sent before previous one!				
 			if (dwClientTime <= m_pClientList[iClientH]->m_dwWalkLAT)
-			{	if (dwMsgTime > m_pClientList[iClientH]->m_dwWalkLATS +400)
+			{	if (dwMsgTime > m_pClientList[iClientH]->m_dwWalkLATS +int(400*mod))
 				{	// But server side seems normal: Big Lag effect or SpeedHack!
 					wsprintf(G_cTxt, "Walking Speed:     PC(%s) -  Negative Client gap, just stopped to SpeedHack. (Disc.) \tIP(%s)"					
 						, m_pClientList[iClientH]->m_cCharName
@@ -52816,8 +52819,8 @@ BOOL CGame::bCheckClientMoveFrequency(int iClientH, DWORD dwClientTime, DWORD dw
 				}
 			}			
 			// Stopped walking ....	restart mesures from this msg
-			if (   ((dwClientTime - m_pClientList[iClientH]->m_dwWalkLAT) > 1000)
-				&& ((dwMsgTime - m_pClientList[iClientH]->m_dwWalkLATS) > 700))
+			if (   ((dwClientTime - m_pClientList[iClientH]->m_dwWalkLAT) > int(1000*mod))
+				&& ((dwMsgTime - m_pClientList[iClientH]->m_dwWalkLATS) > int(700*mod)))
 			{	// Do not count this time.
 				if (m_pClientList[iClientH]->m_bMonitorThisChar)
 				{	wsprintf(G_cTxt, "Walking Speed:     PC(%s) (C:%dms S:%dms) - Stopped walking."				
@@ -52911,7 +52914,8 @@ BOOL CGame::bCheckClientMoveFrequency(int iClientH, DWORD dwClientTime, DWORD dw
 		case 5: 
 			// Hum.... last msg sent before previous one!				
 			if (dwClientTime <= m_pClientList[iClientH]->m_dwRunLAT)
-			{	if (dwMsgTime > m_pClientList[iClientH]->m_dwRunLATS +200)
+			{
+				if (dwMsgTime > m_pClientList[iClientH]->m_dwRunLATS + (200*mod))
 				{	// But server side seems normal: Big Lag effect or SpeedHack!
 					wsprintf(G_cTxt, "Running Speed:     PC(%s) -  Negative Client gap, just stopped to SpeedHack. (Disc.) \tIP(%s)"					
 						, m_pClientList[iClientH]->m_cCharName
@@ -52925,8 +52929,8 @@ BOOL CGame::bCheckClientMoveFrequency(int iClientH, DWORD dwClientTime, DWORD dw
 				}
 			}		
 			// Stopped runing... restart mesures from this msg			
-			if (   ((dwClientTime - m_pClientList[iClientH]->m_dwRunLAT) > 1000)
-				&& ((dwMsgTime - m_pClientList[iClientH]->m_dwRunLATS) > 700))
+			if (((dwClientTime - m_pClientList[iClientH]->m_dwRunLAT) > (1000*mod))
+				&& ((dwMsgTime - m_pClientList[iClientH]->m_dwRunLATS) > int(700*mod)))
 			{	if (m_pClientList[iClientH]->m_bMonitorThisChar)
 				{	wsprintf(G_cTxt, "Running Speed:     PC(%s) (C:%dms S:%dms) - Stopped running."				
 						, m_pClientList[iClientH]->m_cCharName
@@ -52988,7 +52992,7 @@ BOOL CGame::bCheckClientMoveFrequency(int iClientH, DWORD dwClientTime, DWORD dw
 		case 6: // last determination 
 			// Hum.... last msg sent before previous one!				
 			if (dwClientTime <= m_pClientList[iClientH]->m_dwRunLAT)
-			{	if (dwMsgTime > m_pClientList[iClientH]->m_dwRunLATS +200)
+			{	if (dwMsgTime > m_pClientList[iClientH]->m_dwRunLATS +int(200*mod))
 				{	// But server side seems normal: Big Lag effect or SpeedHack!
 					wsprintf(G_cTxt, "Running Speed:     PC(%s) -  Negative Client gap, just stopped to SpeedHack. (Disc.) \tIP(%s)"					
 						, m_pClientList[iClientH]->m_cCharName
@@ -53002,8 +53006,8 @@ BOOL CGame::bCheckClientMoveFrequency(int iClientH, DWORD dwClientTime, DWORD dw
 				}
 			}		
 			// Stopped runing 1 time....		
-			if (   ((dwClientTime - m_pClientList[iClientH]->m_dwRunLAT) > 1000)
-				&& ((dwMsgTime - m_pClientList[iClientH]->m_dwRunLATS) > 700))
+			if (   ((dwClientTime - m_pClientList[iClientH]->m_dwRunLAT) > int(1000*mod))
+				&& ((dwMsgTime - m_pClientList[iClientH]->m_dwRunLATS) > int(700*mod)))
 			{	// Do not count this time.
 				if (m_pClientList[iClientH]->m_bMonitorThisChar)
 				{	wsprintf(G_cTxt, "Running Speed:     PC(%s) (C:%dms S:%dms) - Stopped running."				

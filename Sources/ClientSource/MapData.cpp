@@ -9,39 +9,40 @@
 //////////////////////////////////////////////////////////////////////
 #include <array>
 
-std::array<int, 2> GetHumanSpeed(bool new_camera)
+std::array<int, 2> GetHumanSpeed(bool new_camera, bool new_speed)
 {
 	return 
 	{
-		new_camera ? 70 / 2 : 70,
-		new_camera ? 42 / 2 : 42
+		new_camera ? int(70 / (new_speed ? 2.5 : 2.0)) : int(70 / (new_speed ? 1.1 : 1.0)),
+		new_camera ? int(42 / (new_speed ? 2.5 : 2.5)) : int(42 / (new_speed ? 1.1 : 1.0))
 	};
 }
 
 void CMapData::SetupHumanSprite()
 {
+	auto mod = m_pGame->_new_camera ? 2 : 2;
 	for (int i = 1; i <= 6; i++)
 	{
 		m_stFrame[i][DEF_OBJECTSTOP].m_sMaxFrame = 14;
-		m_stFrame[i][DEF_OBJECTSTOP].m_sFrameTime = 32;
+		m_stFrame[i][DEF_OBJECTSTOP].m_sFrameTime = int(32 * mod);
 		m_stFrame[i][DEF_OBJECTMOVE].m_sMaxFrame = 7;
-		m_stFrame[i][DEF_OBJECTMOVE].m_sFrameTime = GetHumanSpeed(m_pGame->_new_camera)[0];// / 1.1;
+		m_stFrame[i][DEF_OBJECTMOVE].m_sFrameTime = GetHumanSpeed(m_pGame->_new_camera, m_pGame->_new_speed)[0];// / 1.1;
 		m_stFrame[i][DEF_OBJECTDAMAGEMOVE].m_sMaxFrame = 3;
-		m_stFrame[i][DEF_OBJECTDAMAGEMOVE].m_sFrameTime = 24;
+		m_stFrame[i][DEF_OBJECTDAMAGEMOVE].m_sFrameTime = int(24 * mod);
 		m_stFrame[i][DEF_OBJECTRUN].m_sMaxFrame = 7;
-		m_stFrame[i][DEF_OBJECTRUN].m_sFrameTime = GetHumanSpeed(m_pGame->_new_camera)[1];//21 / 1.1;
+		m_stFrame[i][DEF_OBJECTRUN].m_sFrameTime = GetHumanSpeed(m_pGame->_new_camera, m_pGame->_new_speed)[1];//21 / 1.1;
 		m_stFrame[i][DEF_OBJECTATTACK].m_sMaxFrame = 7;
-		m_stFrame[i][DEF_OBJECTATTACK].m_sFrameTime = 41 / 1.1;
+		m_stFrame[i][DEF_OBJECTATTACK].m_sFrameTime = int(41 * mod);
 		m_stFrame[i][DEF_OBJECTATTACKMOVE].m_sMaxFrame = 12;
-		m_stFrame[i][DEF_OBJECTATTACKMOVE].m_sFrameTime = 38;
+		m_stFrame[i][DEF_OBJECTATTACKMOVE].m_sFrameTime = int(38 * mod);
 		m_stFrame[i][DEF_OBJECTMAGIC].m_sMaxFrame = 15;
-		m_stFrame[i][DEF_OBJECTMAGIC].m_sFrameTime = 40;
+		m_stFrame[i][DEF_OBJECTMAGIC].m_sFrameTime = int(40 * mod);
 		m_stFrame[i][DEF_OBJECTGETITEM].m_sMaxFrame = 3;
-		m_stFrame[i][DEF_OBJECTGETITEM].m_sFrameTime = 50;
+		m_stFrame[i][DEF_OBJECTGETITEM].m_sFrameTime = int(50 * mod);
 		m_stFrame[i][DEF_OBJECTDAMAGE].m_sMaxFrame = 7;
-		m_stFrame[i][DEF_OBJECTDAMAGE].m_sFrameTime = 32;
+		m_stFrame[i][DEF_OBJECTDAMAGE].m_sFrameTime = int(32 * mod);
 		m_stFrame[i][DEF_OBJECTDYING].m_sMaxFrame = 12;
-		m_stFrame[i][DEF_OBJECTDYING].m_sFrameTime = 40;
+		m_stFrame[i][DEF_OBJECTDYING].m_sFrameTime = int(40 * mod);
 	}
 }
 
@@ -2185,17 +2186,30 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 
 			if ((dwTime - m_pData[dX][dY].m_dwOwnerTime) > dwFrameTime )
 			{	
-				/*if ((dwTime - m_pData[dX][dY].m_dwOwnerTime) >= (dwFrameTime +dwFrameTime))
-				{	iSkipFrame = ((dwTime - m_pData[dX][dY].m_dwOwnerTime)/dwFrameTime);
-					if (iSkipFrame > 3) iSkipFrame = 3;
-					m_pData[dX][dY].m_cOwnerFrame += iSkipFrame;
-				}else*/
+				if(!m_pGame->_new_camera)
 				{
-					if (m_pData[dX][dY].m_sOwnerType > 0 &&
-						m_pData[dX][dY].m_sOwnerType < 7
-						)//&& isClientPlayer)
+					if ((dwTime - m_pData[dX][dY].m_dwOwnerTime) >= (dwFrameTime +dwFrameTime))
+					{	
+						iSkipFrame = ((dwTime - m_pData[dX][dY].m_dwOwnerTime)/dwFrameTime);
+						if (iSkipFrame > 3)
+							iSkipFrame = 3;
+
+						m_pData[dX][dY].m_cOwnerFrame += iSkipFrame;
+					}
+					else
 					{
-						if (!m_pGame->_new_camera || (m_pGame->_new_camera && m_pData[dX][dY].m_bSpriteOmit))
+						m_pData[dX][dY].m_cOwnerFrame++;
+					}
+				}
+				else
+				{
+					if (m_pGame->_new_camera && m_pData[dX][dY].m_sOwnerType > 0 &&
+						m_pData[dX][dY].m_sOwnerType < 7
+						&& (m_pData[dX][dY].m_cOwnerAction == DEF_OBJECTMOVE || 
+							m_pData[dX][dY].m_cOwnerAction == DEF_OBJECTRUN ||
+							m_pData[dX][dY].m_cOwnerAction == DEF_OBJECTDAMAGEMOVE))
+					{
+						if (m_pData[dX][dY].m_bSpriteOmit)
 							m_pData[dX][dY].m_cOwnerFrame++;
 					}
 					else {
@@ -2277,7 +2291,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 					case 4:
 					case 5:
 					case 6: // glowing armor/weapon
-						if ((m_pData[dX][dY].m_cOwnerFrame == 1 && !m_pData[dX][dY].m_bSpriteOmit) || (m_pData[dX][dY].m_cOwnerFrame == 5 && !m_pData[dX][dY].m_bSpriteOmit))
+						if ((m_pData[dX][dY].m_cOwnerFrame == 1 && m_pData[dX][dY].m_bSpriteOmit) || (m_pData[dX][dY].m_cOwnerFrame == 5 && m_pData[dX][dY].m_bSpriteOmit))
 						{	if (((m_pData[dX][dY].m_sAppr4 & 0x000F) != 0) && ((m_pData[dX][dY].m_iStatus & 0x10) == 0))
 							{	m_pGame->bAddNewEffect(54, (m_sPivotX+dX)*32 +(rand()%20-10), (m_sPivotY+dY)*32 -(rand()%50) -5, NULL, NULL, -(rand()%8), 0);
 							}
@@ -2325,7 +2339,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 					case 46: // TK
 					case 53: // Beholder
 					case 54: // Dark-Elf
-						if ((m_pData[dX][dY].m_cOwnerFrame == 1 && !m_pData[dX][dY].m_bSpriteOmit) || (m_pData[dX][dY].m_cOwnerFrame == 5 && !m_pData[dX][dY].m_bSpriteOmit))
+						if ((m_pData[dX][dY].m_cOwnerFrame == 1 && m_pData[dX][dY].m_bSpriteOmit) || (m_pData[dX][dY].m_cOwnerFrame == 5 && m_pData[dX][dY].m_bSpriteOmit))
 						{	m_pGame->PlaySound('C', 8, sDist, lPan);
 							if (((m_pData[dX][dY].m_sAppr4 & 0x000F) != 0) && ((m_pData[dX][dY].m_iStatus & 0x10) == 0))
 							{	cTotalFrame = 8;
@@ -2623,7 +2637,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 					case 5:
 					case 6:
 					case 44: // GHK
-						if ((m_pData[dX][dY].m_cOwnerFrame == 1 && !m_pData[dX][dY].m_bSpriteOmit) || (m_pData[dX][dY].m_cOwnerFrame == 5 && !m_pData[dX][dY].m_bSpriteOmit))
+						if ((m_pData[dX][dY].m_cOwnerFrame == 1 && m_pData[dX][dY].m_bSpriteOmit) || (m_pData[dX][dY].m_cOwnerFrame == 5 && m_pData[dX][dY].m_bSpriteOmit))
 						{	cTotalFrame = 8;
 							cFrameMoveDots = 32 / cTotalFrame;
 							dx = dy = 0;
@@ -2662,7 +2676,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 					case 4:
 					case 5:
 					case 6:
-						if (m_pData[dX][dY].m_cOwnerFrame == 2 && !m_pData[dX][dY].m_bSpriteOmit) // vu comme case 2
+						if (m_pData[dX][dY].m_cOwnerFrame == 2 && m_pData[dX][dY].m_bSpriteOmit) // vu comme case 2
 						{	m_pGame->PlaySound('C', 4, sDist); //bruit fleche
 							cTotalFrame = 8;
 							cFrameMoveDots = 32 / cTotalFrame;
@@ -2687,7 +2701,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 								&& ((m_pData[dX][dY].m_iStatus & 0x10) == 0)) 
 							{	m_pGame->bAddNewEffect(54, (m_sPivotX+dX)*32 +(rand()%15+10), (m_sPivotY+dY)*32 -(rand()%30) -50, NULL, NULL, -(rand()%8), 0);
 							}
-						}else if (m_pData[dX][dY].m_cOwnerFrame == 4 && !m_pData[dX][dY].m_bSpriteOmit) // vu comme case 4
+						}else if (m_pData[dX][dY].m_cOwnerFrame == 4 && m_pData[dX][dY].m_bSpriteOmit) // vu comme case 4
 						{ 	if ((m_pGame->m_cWhetherEffectType >= 1) && (m_pGame->m_cWhetherEffectType <= 3))
 							{	m_pGame->bAddNewEffect(32, (m_sPivotX+dX)*32 +((rand() % 20)-10), (m_sPivotY+dY)*32 +((rand() % 20)-10), NULL, NULL, 0, 0);
 								m_pGame->bAddNewEffect(32, (m_sPivotX+dX)*32 +((rand() % 20)-10), (m_sPivotY+dY)*32 +((rand() % 20)-10), NULL, NULL, 0, 0);
@@ -2702,7 +2716,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 								m_pGame->bAddNewEffect(14, (m_sPivotX+dX)*32 +((rand() % 20)-10), (m_sPivotY+dY)*32 +((rand() % 20)-10), NULL, NULL, 0, 0);
 							}
 							m_pGame->PlaySound('C', 11, sDist, lPan);
-						}else if (m_pData[dX][dY].m_cOwnerFrame == 5 && !m_pData[dX][dY].m_bSpriteOmit) // vu comme case 5
+						}else if (m_pData[dX][dY].m_cOwnerFrame == 5 && m_pData[dX][dY].m_bSpriteOmit) // vu comme case 5
 						{	sWeaponType = ((m_pData[dX][dY].m_sAppr2 & 0x0FF0) >> 4);
 							if ((sWeaponType >= 1) && (sWeaponType <= 2))
 							{	m_pGame->PlaySound('C', 1, sDist, lPan);
@@ -2764,7 +2778,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 					case 4:
 					case 5:
 					case 6: // Humans
-						if ((m_pData[dX][dY].m_sV3 >= 20) && (m_pData[dX][dY].m_cOwnerFrame == 2 && !m_pData[dX][dY].m_bSpriteOmit))
+						if ((m_pData[dX][dY].m_sV3 >= 20) && (m_pData[dX][dY].m_cOwnerFrame == 2 && m_pData[dX][dY].m_bSpriteOmit))
 						{	if  ( m_pGame->bHasHeroSet(m_pData[dX][dY].m_sAppr3, m_pData[dX][dY].m_sAppr4, m_pData[dX][dY].m_sOwnerType) == 1) // Warr hero set
 							{	m_pGame->bAddNewEffect(243, m_sPivotX + dX, m_sPivotY + dY
 									, m_sPivotX + dX , m_sPivotY + dY, 0, 1);
@@ -2781,7 +2795,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 								m_pGame->PlaySound('C', 24, sDist, lPan); // Critical sound
 								break;
 						}	}
-						if (m_pData[dX][dY].m_cOwnerFrame == 5 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 5 && m_pData[dX][dY].m_bSpriteOmit)
 						{	if ((m_pData[dX][dY].m_sAppr2 & 0xF000) != 0) // not Peace mode
 							{	if (m_pData[dX][dY].m_sV3 != 1) // autre que corp à corp
 								{	m_pGame->bAddNewEffect(m_pData[dX][dY].m_sV3, m_sPivotX + dX, m_sPivotY + dY
@@ -2833,19 +2847,19 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 						if ((m_pData[dX][dY].m_sAppr2 & 0xF000) != 0)
 						{	sWeaponType = ((m_pData[dX][dY].m_sAppr2 & 0x0FF0) >> 4);
 							if ((sWeaponType >= 1) && (sWeaponType <= 2))
-							{	if (m_pData[dX][dY].m_cOwnerFrame == 5 && !m_pData[dX][dY].m_bSpriteOmit)
+							{	if (m_pData[dX][dY].m_cOwnerFrame == 5 && m_pData[dX][dY].m_bSpriteOmit)
 								{	m_pGame->PlaySound('C', 1, sDist, lPan);
 								}
 							}else if ((sWeaponType >= 3) && (sWeaponType <= 19))
-							{	if (m_pData[dX][dY].m_cOwnerFrame == 5 && !m_pData[dX][dY].m_bSpriteOmit)
+							{	if (m_pData[dX][dY].m_cOwnerFrame == 5 && m_pData[dX][dY].m_bSpriteOmit)
 								{	m_pGame->PlaySound('C', 2, sDist, lPan);
 					   			}
 							}else if ((sWeaponType >= 20) && (sWeaponType <= 39))
-							{	if (m_pData[dX][dY].m_cOwnerFrame == 2 && !m_pData[dX][dY].m_bSpriteOmit)
+							{	if (m_pData[dX][dY].m_cOwnerFrame == 2 && m_pData[dX][dY].m_bSpriteOmit)
 								{	m_pGame->PlaySound('C', 18, sDist, lPan);
 					   			}
 							}else if ((sWeaponType >= 40) && (sWeaponType <= 59))
-							{	if (m_pData[dX][dY].m_cOwnerFrame == 3 && !m_pData[dX][dY].m_bSpriteOmit)
+							{	if (m_pData[dX][dY].m_cOwnerFrame == 3 && m_pData[dX][dY].m_bSpriteOmit)
 								{	m_pGame->PlaySound('C', 3, sDist, lPan);
 						}	}	}
 						break;
@@ -3128,7 +3142,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 					case 44: // GHK
 					case 45: // GHKABS
 					case 46: // TK
-						if (m_pData[dX][dY].m_cOwnerFrame == 4 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 4 && m_pData[dX][dY].m_bSpriteOmit)
 						{	if (m_pData[dX][dY].m_sV2 == -1)
 								iSoundIndex = 5;
 							else if (m_pData[dX][dY].m_sV2 == 0)
@@ -3143,13 +3157,13 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 							m_pGame->PlaySound('C', iSoundIndex, sDist, lPan);
 							m_pGame->bAddNewEffect(1, m_sPivotX + dX, m_sPivotY + dY, 0, 0, 0, 4);
 						}
-						if (m_pData[dX][dY].m_cOwnerFrame == 5 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 5 && m_pData[dX][dY].m_bSpriteOmit)
 							m_pGame->PlaySound('C', 12, sDist, lPan);
 						break;
 					case 4:
 					case 5:
 					case 6: // Women
-						if (m_pData[dX][dY].m_cOwnerFrame == 4 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 4 && m_pData[dX][dY].m_bSpriteOmit)
 						{	if (m_pData[dX][dY].m_sV2 == -1)
 								iSoundIndex = 5;
 							else if (m_pData[dX][dY].m_sV2 == 0)
@@ -3164,7 +3178,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 							m_pGame->PlaySound('C', iSoundIndex, sDist, lPan);
 							m_pGame->bAddNewEffect(1, m_sPivotX + dX, m_sPivotY + dY, 0, 0, 0, 4);
 						}
-						if (m_pData[dX][dY].m_cOwnerFrame == 5 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 5 && m_pData[dX][dY].m_bSpriteOmit)
 							m_pGame->PlaySound('C', 13, sDist, lPan);
 						break;
 
@@ -3383,7 +3397,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 					case 1:
 					case 2:
 					case 3:
-						if (m_pData[dX][dY].m_cOwnerFrame == 1 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 1 && m_pData[dX][dY].m_bSpriteOmit)
 						{	if (m_pData[dX][dY].m_sV2 == -1)
 								iSoundIndex = 5;
 							else if (m_pData[dX][dY].m_sV2 == 0)
@@ -3399,14 +3413,14 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 							m_pGame->PlaySound('C', iSoundIndex, sDist, lPan);
 							m_pGame->bAddNewEffect(1, m_sPivotX + dX, m_sPivotY + dY, 0, 0, 0, 4);
 						}
-						if (m_pData[dX][dY].m_cOwnerFrame == 2 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 2 && m_pData[dX][dY].m_bSpriteOmit)
 							m_pGame->PlaySound('C', 12, sDist, lPan);
 						break;
 
 					case 4:
 					case 5:
 					case 6:
-						if (m_pData[dX][dY].m_cOwnerFrame == 1 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 1 && m_pData[dX][dY].m_bSpriteOmit)
 						{	if (m_pData[dX][dY].m_sV2 == -1)
 								iSoundIndex = 5;
 							else if (m_pData[dX][dY].m_sV2 == 0)
@@ -3421,12 +3435,12 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 							m_pGame->PlaySound('C', iSoundIndex, sDist, lPan);
 							m_pGame->bAddNewEffect(1, m_sPivotX + dX, m_sPivotY + dY, 0, 0, 0, 4);
 						}
-						if (m_pData[dX][dY].m_cOwnerFrame == 2 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 2 && m_pData[dX][dY].m_bSpriteOmit)
 							m_pGame->PlaySound('C', 13, sDist, lPan);
 						break;
 
 					default:
-						if (m_pData[dX][dY].m_cOwnerFrame == 1 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 1 && m_pData[dX][dY].m_bSpriteOmit)
 						{	if (m_pData[dX][dY].m_sV2 == -1)
 								iSoundIndex = 5;
 							else if (m_pData[dX][dY].m_sV2 == 0)
@@ -3664,7 +3678,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 					case 4:
 					case 5:
 					case 6:
-						if (m_pData[dX][dY].m_cOwnerFrame == 1 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 1 && m_pData[dX][dY].m_bSpriteOmit)
 						{	m_pGame->PlaySound('C', 16, sDist, lPan);
 							if (((m_pData[dX][dY].m_sAppr4 & 0x000F) != 0) && ((m_pData[dX][dY].m_iStatus & 0x10) == 0))
 							{	m_pGame->bAddNewEffect(54, (m_sPivotX+dX)*32 +(rand()%20-10), (m_sPivotY+dY)*32 -(rand()%50) -5, NULL, NULL, -(rand()%8), 0);
@@ -3696,7 +3710,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 					case 44: // GHK
 					case 45: // GHKABS
 					case 46: // TK
-						if (m_pData[dX][dY].m_cOwnerFrame == 6 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 6 && m_pData[dX][dY].m_bSpriteOmit)
 						{	if (m_pData[dX][dY].m_sV2 == -1)
 								iSoundIndex = 5;
 							else if (m_pData[dX][dY].m_sV2 == 0)
@@ -3711,7 +3725,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 							m_pGame->PlaySound('C', iSoundIndex, sDist, lPan);
 							m_pGame->bAddNewEffect(1, m_sPivotX + dX, m_sPivotY + dY, 0, 0, 0, 12);
 						}
-						if (m_pData[dX][dY].m_cOwnerFrame == 7 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 7 && m_pData[dX][dY].m_bSpriteOmit)
 							m_pGame->PlaySound('C', 14, sDist, lPan);
 						break;
 
@@ -3719,7 +3733,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 					case 5:
 					case 6:
 					case 54: // DE
-						if (m_pData[dX][dY].m_cOwnerFrame == 6 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 6 && m_pData[dX][dY].m_bSpriteOmit)
 						{	if (m_pData[dX][dY].m_sV2 == -1)
 								iSoundIndex = 5;
 							else if (m_pData[dX][dY].m_sV2 == 0)
@@ -3734,7 +3748,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 							m_pGame->PlaySound('C', iSoundIndex, sDist, lPan);
 							m_pGame->bAddNewEffect(1, m_sPivotX + dX, m_sPivotY + dY, 0, 0, 0, 12);
 						}
-						if (m_pData[dX][dY].m_cOwnerFrame == 7 && !m_pData[dX][dY].m_bSpriteOmit)
+						if (m_pData[dX][dY].m_cOwnerFrame == 7 && m_pData[dX][dY].m_bSpriteOmit)
 							m_pGame->PlaySound('C', 15, sDist, lPan);
 						break;
 

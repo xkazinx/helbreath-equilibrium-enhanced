@@ -22,10 +22,83 @@ waypoint          =     8      59    42
 waypoint          =     9      59    42
 waypoint          =     10     59    42
 
+//-WayPoint-Set---------Num-----X-----Y----;
+waypoint          =     11      58    42
+waypoint          =     12      58    42
+waypoint          =     13      58    42
+waypoint          =     14      58    42
+waypoint          =     15      58    42
+waypoint          =     16      58    42
+waypoint          =     17      58    42
+waypoint          =     18      58    42
+waypoint          =     19      58    42
+waypoint          =     20     58    42
+
+//-WayPoint-Set---------Num-----X-----Y----;
+waypoint          =     21      57    42
+waypoint          =     22      57    42
+waypoint          =     23      57    42
+waypoint          =     24      57    42
+waypoint          =     25      57    42
+waypoint          =     26      57    42
+waypoint          =     27      57    42
+waypoint          =     28      57    42
+waypoint          =     29      57    42
+waypoint          =     30     57    42
+
+//-WayPoint-Set---------Num-----X-----Y----;
+waypoint          =     31      56    42
+waypoint          =     32      56    42
+waypoint          =     33      56    42
+waypoint          =     34      56    42
+waypoint          =     35      56    42
+waypoint          =     36      56    42
+waypoint          =     37      56    42
+waypoint          =     38      56    42
+waypoint          =     39      56    42
+waypoint          =     40     56    42
+
+//-WayPoint-Set---------Num-----X-----Y----;
+waypoint          =     41      55    42
+waypoint          =     42      55    42
+waypoint          =     43      55    42
+waypoint          =     44      55    42
+waypoint          =     45      55    42
+waypoint          =     46      55    42
+waypoint          =     47      55    42
+waypoint          =     48      55    42
+waypoint          =     49      55    42
+waypoint          =     50     55    42
+
+
+//-WayPoint-Set---------Num-----X-----Y----;
+waypoint          =     51      54    42
+waypoint          =     52      54    42
+waypoint          =     53      54    42
+waypoint          =     54      54    42
+waypoint          =     55      54    42
+waypoint          =     56      54    42
+waypoint          =     57      54    42
+waypoint          =     58      54    42
+waypoint          =     59      54    42
+waypoint          =     60     54    42
+
 
 //-NPC-setting--------Name---------------MoveType----WaypointIndex(10)-------NamePrefix-------;
 
 npc               =   ShopKeeper-W       2           1 2 3 4 5 6 7 8 9 10         1  
+
+npc               =   William            1           11 12 13 14 15 16 17 18 19 20         1  
+
+npc               =   Howard               1         31 32 33 34 35 36 37 38 39 40         1  
+
+//-NPC-setting--------Name---------------MoveType----WaypointIndex(10)-------NamePrefix-------;
+npc               =   Kennedy            1           41 42 43 44 45 46 47 48 49 50         1  
+
+
+//-NPC-setting--------Name---------------MoveType----WaypointIndex(10)-------NamePrefix-------;
+npc               =   Tom                1           51 52 53 54 55 56 57 58 59 60         1  
+
 
 
 

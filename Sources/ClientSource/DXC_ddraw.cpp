@@ -66,7 +66,7 @@ BOOL DXC_ddraw::bInit(HWND hWnd)
 		ddVal = m_lpDD4->SetCooperativeLevel(hWnd, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN);
 		if (ddVal != DD_OK) return FALSE;
 
-		ddVal = m_lpDD4->SetDisplayMode(_res_x, 480, 16,0,0);
+		ddVal = m_lpDD4->SetDisplayMode(_res_x, _res_y, 16,0,0);
 		if (ddVal != DD_OK) return FALSE;
 		memset( (VOID *)&ddsd, 0, sizeof(ddsd) );
 		ddsd.dwSize = sizeof( ddsd );
@@ -94,7 +94,8 @@ BOOL DXC_ddraw::bInit(HWND hWnd)
 		cx = cx/2;
 		cy = cy/2;
 		if(cy>280) cy -= 40;
-		SetWindowPos( hWnd, HWND_TOP, cx-320, cy-240, _res_x, _res_y, SWP_SHOWWINDOW);
+		SetWindowPos(hWnd, HWND_TOP, cx - (_res_x / 2), cy - (_res_y / 2), _res_x, _res_y, SWP_SHOWWINDOW);
+		//SetWindowPos( hWnd, HWND_TOP, cx-320, cy-240, _res_x, _res_y, SWP_SHOWWINDOW);
 		memset( (VOID *)&ddsd, 0, sizeof(ddsd) );
 		ddsd.dwSize = sizeof( ddsd );
 		ddsd.dwFlags = DDSD_CAPS;
@@ -162,7 +163,9 @@ BOOL DXC_ddraw::bInit(HWND hWnd)
 	m_hFontInUse = CreateFont(16,0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, NONANTIALIASED_QUALITY, VARIABLE_PITCH, "Comic Sans MS") ;
 	m_hDC = NULL;
 	m_init = true;
-	ChangeDisplayMode(hWnd);
+
+	if(!m_bFullMode)
+		ChangeDisplayMode(hWnd);
 	return TRUE;
 }
 
@@ -493,7 +496,7 @@ void DXC_ddraw::ClearBackB4()
 	DDSURFACEDESC2 ddsd2;	
 	ddsd2.dwSize = sizeof(ddsd2);
 	if (m_lpBackB4->Lock(NULL, &ddsd2, DDLOCK_WAIT, NULL) != DD_OK) return;
-	memset((char *)ddsd2.lpSurface, 0, ddsd2.lPitch * 480);
+	memset((char *)ddsd2.lpSurface, 0, ddsd2.lPitch * 600);
 	m_lpBackB4->Unlock(NULL);
 }
 
@@ -554,7 +557,7 @@ void DXC_ddraw::PutPixel(short sX, short sY, WORD wR, WORD wG, WORD wB)
 {
  WORD * pDst;
 
-	if ((sX < 0) || (sY < 0) || (sX > 639) || (sY > 479)) return;
+	if ((sX < 0) || (sY < 0) || (sX > _res_x - 1) || (sY > _res_y - 1)) return;
 
 	pDst = (WORD *)m_pBackB4Addr + sX + ((sY)*m_sBackB4Pitch);
 	
