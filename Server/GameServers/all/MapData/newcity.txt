@@ -1,0 +1,13 @@
+[MAP-INFO]
+
+//map-location  = elvine
+initial-point = 1  158 57
+initial-point = 2  110 89
+initial-point = 3  170 145
+initial-point = 4  242 129
+initial-point = 5  158 249
+
+maximum-object		= 600
+random-mob-generator	= 1  1
+
+[END-MAP-INFO]

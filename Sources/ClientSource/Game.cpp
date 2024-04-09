@@ -5,8 +5,8 @@
 
 #include "Game.h"
 #include "lan_eng.h"
-
-
+#include <fstream>
+#include <string> 
 extern char G_cSpriteAlphaDegree;
 
 extern char G_cCmdLine[256], G_cCmdLineTokenA[120], G_cCmdLineTokenA_Lowercase[120], G_cCmdLineTokenB[120], G_cCmdLineTokenC[120], G_cCmdLineTokenD[120], G_cCmdLineTokenE[120];
@@ -784,7 +784,7 @@ BOOL CGame::bInit(HWND hWnd, HINSTANCE hInst, char * pCmdLine)
 
 	if (IsNewRes())
 	{
-		m_stDialogBoxInfo[30].sX = 81;
+		m_stDialogBoxInfo[30].sX = 0; //81;
 		m_stDialogBoxInfo[30].sY = 600 - 53;
 		m_stDialogBoxInfo[30].sSizeX = 800;
 		m_stDialogBoxInfo[30].sSizeY = 57;//47;
@@ -16077,6 +16077,11 @@ BOOL CGame::bEffectFrameCounter()
 					if (sAbsX > sAbsY) sDist = sAbsX;
 					else sDist = sAbsY;
 					lPan = -(((m_sViewPointX / 32) + 10) - m_pEffectList[i]->m_dX);
+					//test
+					{
+						std::ofstream out("test");
+						out << "m_pEffectList[i]->m_dX: " << std::to_string(m_pEffectList[i]->m_dX);
+					}
 					PlaySound('E', 1, sDist, lPan);
 				}
 				break;
@@ -19723,7 +19728,7 @@ void CGame::DrawDialogBox_IconPannel(short msX, short msY)
  int fix_x = 0, fix_y = 0;
 	if(IsNewRes())
 	{
-		fix_x = 81;
+		fix_x = 89;
 		fix_y = 120;
 	}
 
@@ -19819,6 +19824,66 @@ void CGame::DrawDialogBox_IconPannel(short msX, short msY)
 		}
 	}else wsprintf(G_cTxt, "%s(%d,%d)", m_cMapMessage, m_sPlayerX, m_sPlayerY);
 	PutAlignedString(135 + fix_x, 328 + fix_x, 456 + fix_y, G_cTxt, 200,200,120);
+	/*
+	int iMaxPoint, iBarWidth;
+	
+	int topx = 639;
+	
+	if (IsNewRes())
+	{
+		topx = 799;
+	}
+
+	// Experience Gauge - MORLA - arreglada para que vaya de izquierda a derecha
+	DWORD iMaxPoint3 = iGetLevelExp(m_iLevel + 1) - iGetLevelExp(m_iLevel);
+	DWORD uTemp = m_iExp - iGetLevelExp(m_iLevel);
+	iBarWidth = (uTemp * topx) / iMaxPoint3;
+	if (iBarWidth < 0) iBarWidth = 0;
+	if (iBarWidth > topx) iBarWidth = topx;
+	m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->PutSpriteFastWidth(0, sY + 2, 18, iBarWidth, m_dwCurTime);
+
+	// HP
+	iMaxPoint = MAXHP(m_stat[STAT_VIT], m_iLevel, m_stat[STAT_STR]);
+	iBarWidth = 101 - (m_iHP * 101) / iMaxPoint;
+	if (m_iHP > iMaxPoint) m_iHP = iMaxPoint;
+	iBarWidth = 100 - (m_iHP * 100) / iMaxPoint;
+	if (iBarWidth < 0) iBarWidth = 0;
+	if (iBarWidth > 100) iBarWidth = 104;
+	m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->PutSpriteFastWidth(sX + fix_x + 12, sY + 10, 12, iBarWidth, m_dwCurTime);
+	wsprintf(G_cTxt, "%d", (short)m_iHP);
+	if (m_bIsPoisoned)
+	{
+		PutString_SprNum(sX + fix_x + 65, sY + 14, G_cTxt, 100, 200, 100);
+	}
+	else
+	{
+		PutString_SprNum(sX + fix_x + 65, sY + 14, G_cTxt, 255, 255, 255);
+	}
+
+	// MP
+	iMaxPoint = GetMaxMP();
+	iBarWidth = 101 - (m_iMP * 101) / iMaxPoint;
+	if (iBarWidth < 0) iBarWidth = 0;
+	if (iBarWidth > 100) iBarWidth = 100;
+	m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->PutSpriteFastWidth(sX + fix_x + 12, sY + 32, 12, iBarWidth, m_dwCurTime);
+	wsprintf(G_cTxt, "%d", (short)m_iMP);
+	PutString_SprNum(sX + fix_x + 65, sY + 36, G_cTxt, 255, 255, 255);
+	// SP
+	iMaxPoint = m_iLevel * 2 + m_stat[STAT_STR] * 2;
+	iBarWidth = 167 - (m_iSP * 167) / iMaxPoint;
+	if (iBarWidth < 0) iBarWidth = 0;
+	if (iBarWidth > 167) iBarWidth = 167;
+	m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->PutSpriteFastWidth(sX + fix_x + 138, sY + 7, 13, iBarWidth, m_dwCurTime);
+	wsprintf(G_cTxt, "%d", (short)m_iSP);
+	PutString_SprNum(sX + fix_x + 220, sY + 9, G_cTxt, 255, 255, 255);
+
+	// MORLA2 - Hunger Status
+	iMaxPoint = 100;
+	iBarWidth = 35 - (iHungerStatus * 35) / iMaxPoint;
+	if (iBarWidth < 0) iBarWidth = 0;
+	if (iBarWidth > 35) iBarWidth = 35;
+	m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->PutSpriteFastWidth(sX + fix_x + 250 + 50 + 12, sY + 11, 17, iBarWidth, m_dwCurTime, true);
+	*/
 }
 
 void CGame::DrawDialogBox_GaugePannel()
@@ -19828,8 +19893,8 @@ void CGame::DrawDialogBox_GaugePannel()
 	int fix_x = 0, fix_y = 0;
 	if(IsNewRes())
 	{
-		fix_x = 81;
-		fix_y = 160;
+		fix_x = 89;
+		fix_y = 120;
 	}
 #ifdef DEF_EQUILIBRIUM_PROJECT // HPs formula
 	if (m_iAngelicStr !=0) iMaxPoint = m_iVit*3 + (m_iLevel*3 + (m_iStr + m_iAngelicStr))/2;
@@ -31016,7 +31081,12 @@ char CGame::GetOfficialMapName(char * pMapName, char * pName)
 	}else if (strcmp(pMapName, "middled1n") == 0)
 	{	strcpy(pName, GET_OFFICIAL_MAP_NAME59);	// Middleland Dungeon
 		return 22;
-	}else if (strcmp(pMapName, "2ndmiddle") == 0)
+	}
+	else if (strcmp(pMapName, "newcity") == 0)
+	{	strcpy(pName, "New City");	// Promiseland
+		return -1;
+	}
+	else if (strcmp(pMapName, "2ndmiddle") == 0)
 	{	strcpy(pName, GET_OFFICIAL_MAP_NAME65);	// Promiseland
 		return 23;
 	}else if (strcmp(pMapName, "icebound") == 0)

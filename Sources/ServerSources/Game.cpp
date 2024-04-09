@@ -3,7 +3,8 @@
 //////////////////////////////////////////////////////////////////////
 
 #include "Game.h"
-
+#include <fstream>
+#include <string>
 class CDebugWindow *DbgWnd;
 
 extern void PutLogList(char * cMsg);
@@ -37429,6 +37430,7 @@ void CGame::AdminOrder_Teleport(int iClientH, char * pData, DWORD dwMsgSize, BOO
 	}
 	bFlag = FALSE;
 			//Asks For Flag on maps
+			if (strcmp("newcity", cMapName) == 0) bFlag = TRUE;
 			if (strcmp("2ndmiddle", cMapName) == 0) bFlag = TRUE;
 			if (strcmp("abaddon", cMapName) == 0) bFlag = TRUE; 
 			if (strcmp("arebrk12", cMapName) == 0) bFlag = TRUE;
@@ -37595,6 +37597,7 @@ void CGame::AdminOrder_Gate(int iClientH, char * pData, DWORD dwMsgSize, BOOL bF
 	}
 	bFlag = FALSE;
 	//Asks For Flag on maps
+	if (strcmp("newcity", cMapName) == 0) bFlag = TRUE;
 	if (strcmp("2ndmiddle", cMapName) == 0) bFlag = TRUE;
 	if (strcmp("abaddon", cMapName) == 0)	bFlag = TRUE; 
 	if (strcmp("arebrk12", cMapName) == 0)	bFlag = TRUE;
@@ -56240,6 +56243,7 @@ void CGame::AdminOrder_Pushplayer(int iClientH, char * pData, DWORD dwMsgSize)
 			if ((m_pClientList[i] != NULL) && (memcmp(m_pClientList[i]->m_cCharName, cTargetName, 10) == 0)) {
 			bFlag = FALSE;
 			//Asks For Flag on maps
+			if (strcmp("newcity", cMapName) == 0) bFlag = TRUE;
 			if (strcmp("2ndmiddle", cMapName) == 0) bFlag = TRUE;
 			if (strcmp("abaddon", cMapName) == 0) bFlag = TRUE; 
 			if (strcmp("arebrk12", cMapName) == 0) bFlag = TRUE;
@@ -66050,7 +66054,7 @@ int		*ip;
 			continue;
 		if( strncmp( m_pTeleportConfigList[index]->m_cTeleportNpcName, cNpcName, 20) != 0 )
 			continue;
-		if(    (m_pTeleportConfigList[index]->m_sMinLevel > m_pClientList[iClientH]->m_iLevel)
+		if((m_pTeleportConfigList[index]->m_sMinLevel > m_pClientList[iClientH]->m_iLevel)
 			|| (m_pTeleportConfigList[index]->m_sMaxLevel <= m_pClientList[iClientH]->m_iLevel))
 			continue;
 		if (   (m_pTeleportConfigList[index]->m_bHunter == FALSE)
@@ -66246,6 +66250,7 @@ BOOL CGame::bDecodeTeleportList(char *pFn)
  class CStrTok * pStrTok;
  int   iIndex;
  int iTeleportConfigListIndex; 
+ 
 	for (int i = 0; i <  DEF_MAXTELEPORTLIST; i++)
 	if (m_pTeleportConfigList[i] != NULL) 
 	{	delete m_pTeleportConfigList[i];
@@ -66262,7 +66267,8 @@ BOOL CGame::bDecodeTeleportList(char *pFn)
 	{	PutLogList("(!) Cannot open Teleport.cfg file.");
 		return FALSE;
 	}else
-	{	PutLogList("(!) Reading TeleportList.cfg...");
+	{	
+		PutLogList("(!) Reading TeleportList.cfg...");
 		cp = new char[dwFileSize+2];
 		ZeroMemory(cp, dwFileSize+2);
 		fread(cp, dwFileSize, 1, pFile);
@@ -66432,6 +66438,7 @@ BOOL CGame::bDecodeTeleportList(char *pFn)
 		if (pFile != NULL) fclose(pFile);
 		wsprintf(G_cTxt, "(!) TELEPORT-LIST(Total:%d) configuration - success!", iTeleportConfigListIndex);
 		PutLogList(G_cTxt);
+
 		return TRUE;
 	}
 }
