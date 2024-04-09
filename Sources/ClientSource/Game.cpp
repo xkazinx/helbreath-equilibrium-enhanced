@@ -17585,6 +17585,9 @@ void CGame::DrawDialogBox_GuideMap(short msX, short msY, char cLB)
 	szY = m_stDialogBoxInfo[9].sSizeY;
 	if( sX < 20 ) sX = 0;
 	if( sY < 20 ) sY = 0;
+	
+	if(m_cMapIndex == 43)
+		m_bZoomMap = false;
 
 	if (IsNewRes())
 	{
@@ -31084,7 +31087,7 @@ char CGame::GetOfficialMapName(char * pMapName, char * pName)
 	}
 	else if (strcmp(pMapName, "newcity") == 0)
 	{	strcpy(pName, "New City");	// Promiseland
-		return -1;
+		return 43;
 	}
 	else if (strcmp(pMapName, "2ndmiddle") == 0)
 	{	strcpy(pName, GET_OFFICIAL_MAP_NAME65);	// Promiseland
