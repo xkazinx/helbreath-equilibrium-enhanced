@@ -105,7 +105,8 @@ BOOL DXC_ddraw::bInit(HWND hWnd)
 		ddVal = m_lpDD4->CreateSurface(&ddsd, &m_lpFrontB4, NULL);
 		if (ddVal != DD_OK) return FALSE;
 
-		SetRect(&m_rcFlipping, cx-320, cy-240, cx+320, cy+240); // our fictitious sprite bitmap is 
+		SetRect(&m_rcFlipping, cx - (_res_x / 2), cy - (_res_y / 2), cx + (_res_x / 2), cy + (_res_y / 2));
+		//SetRect(&m_rcFlipping, cx-320, cy-240, cx+320, cy+240); // our fictitious sprite bitmap is 
 	}
 
 	InitFlipToGDI(hWnd);
@@ -164,8 +165,8 @@ BOOL DXC_ddraw::bInit(HWND hWnd)
 	m_hDC = NULL;
 	m_init = true;
 
-	if(!m_bFullMode)
-		ChangeDisplayMode(hWnd);
+	//if(!m_bFullMode)
+	//ChangeDisplayMode(hWnd);
 	return TRUE;
 }
 
