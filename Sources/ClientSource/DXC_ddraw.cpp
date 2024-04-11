@@ -166,7 +166,7 @@ BOOL DXC_ddraw::bInit(HWND hWnd)
 	m_init = true;
 
 	//if(!m_bFullMode)
-	//ChangeDisplayMode(hWnd);
+	ChangeDisplayMode(hWnd);
 	return TRUE;
 }
 
