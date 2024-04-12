@@ -318,6 +318,7 @@ bool DXC_ddraw::ChangeDisplayMode(HWND hWnd)
 	m_pBackB4Addr        = (WORD *)ddsd.lpSurface;
 	m_sBackB4Pitch       = (short)ddsd.lPitch >> 1;
 	m_lpBackB4->Unlock(NULL);
+	return TRUE;
 }
 
 IDirectDrawSurface7 * DXC_ddraw::pCreateOffScreenSurface(WORD wSzX, WORD wSzY)
