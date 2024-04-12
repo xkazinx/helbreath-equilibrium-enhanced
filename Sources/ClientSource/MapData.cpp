@@ -11,10 +11,37 @@
 
 std::array<int, 2> GetHumanSpeed(bool new_camera, bool new_speed)
 {
+	int v1 = 70;
+	int v2 = 42;
+
+	if(new_camera)
+	{
+		if(new_speed)
+		{
+			v1 /= 1.05;	
+			v2 /= 1.05;
+		}
+
+		v1 /= 2;
+		v2 /= 2;
+	}
+	else
+	{
+		if(new_speed)
+		{
+			v1 /= 1.05;	
+			v2 /= 1.05;
+		}
+	}
+
+	return { v1, v2 };
+
 	return 
 	{
-		new_camera ? int(70 / (new_speed ? 2.5 : 2.0)) : int(70 / (new_speed ? 1.1 : 1.0)),
-		new_camera ? int(42 / (new_speed ? 2.5 : 2.5)) : int(42 / (new_speed ? 1.1 : 1.0))
+		//new_camera ? int(70 / (new_speed ? 2.5 : 2.0)) : int(70 / (new_speed ? 1.05 : 1.0)),
+		//new_camera ? int(42 / (new_speed ? 2.5 : 2.5)) : int(42 / (new_speed ? 1.05 : 1.0))
+		new_camera ? int(70 / (new_speed ? 1.05 : 2.0)) : int(70 / (new_speed ? 1.05 : 1.0)),
+		new_camera ? int(42 / (new_speed ? 1.05 : 2.0)) : int(42 / (new_speed ? 1.05 : 1.0))
 	};
 }
 
@@ -1984,12 +2011,20 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 	if ((dwTime - m_dwFrameTime) >= 90)
 		m_dwFrameTime = dwTime;
 
-	sVal = sViewPointX - (m_sPivotX*32);
+	/*sVal = sViewPointX - (m_sPivotX*32);
 	sCenterX = (sVal / 32) + 10;
 	sVal = sViewPointY - (m_sPivotY*32);
 	sCenterY = (sVal / 32) + 8;
 	m_sRectX = m_pGame->m_sVDL_X - m_sPivotX;
+	m_sRectY = m_pGame->m_sVDL_Y - m_sPivotY;*/
+
+	sCenterX = m_pGame->m_sPlayerX - m_sPivotX;
+	sCenterY = m_pGame->m_sPlayerY - m_sPivotY;
+	sVal = sViewPointX - (m_sPivotX * 32);
+	sVal = sViewPointY - (m_sPivotY * 32);
+	m_sRectX = m_pGame->m_sVDL_X - m_sPivotX;
 	m_sRectY = m_pGame->m_sVDL_Y - m_sPivotY;
+
 	if ((dwTime - S_dwUpdateTime) > 40) bAutoUpdate = TRUE;
 
 	for (dX = 0; dX < MAPDATASIZEX; dX++)
