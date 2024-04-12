@@ -35,6 +35,7 @@ public:
 
 	DXC_ddraw();
 	virtual ~DXC_ddraw();
+	void ChangeBPP(char bpp);
 	BOOL bInit(HWND hWnd);
 	void ColorTransferRGB(COLORREF fcolor, int * iR, int * iG, int * iB);
 	HRESULT InitFlipToGDI(HWND hWnd);

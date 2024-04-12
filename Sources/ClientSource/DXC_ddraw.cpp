@@ -49,6 +49,18 @@ DXC_ddraw::~DXC_ddraw()
 	if (m_lpDD4 != NULL) m_lpDD4->Release();
 }
 
+void DXC_ddraw::ChangeBPP(char bpp) {
+	//return;
+	DEVMODE d = { 0 };
+	EnumDisplaySettings(NULL, ENUM_CURRENT_SETTINGS, &d);
+
+	d.dmBitsPerPel = bpp;
+	ChangeDisplaySettings(&d, 0);
+}
+
+//#include <fstream>
+//#include <string>
+
 BOOL DXC_ddraw::bInit(HWND hWnd)
 {
  HRESULT        ddVal;
@@ -56,7 +68,7 @@ BOOL DXC_ddraw::bInit(HWND hWnd)
  int            iS, iD;
 
 	SetRect(&m_rcClipArea, 0,0, _res_x, _res_y);
-
+	
 	ddVal = DirectDrawCreateEx(NULL, (VOID**)&m_lpDD4, IID_IDirectDraw7, NULL);
     if (ddVal != DD_OK) return FALSE;
 
@@ -66,8 +78,11 @@ BOOL DXC_ddraw::bInit(HWND hWnd)
 		ddVal = m_lpDD4->SetCooperativeLevel(hWnd, DDSCL_EXCLUSIVE | DDSCL_FULLSCREEN);
 		if (ddVal != DD_OK) return FALSE;
 
-		ddVal = m_lpDD4->SetDisplayMode(_res_x, _res_y, 16,0,0);
+		ddVal = m_lpDD4->SetDisplayMode(_res_x, _res_y, 32, 0, 0);
 		if (ddVal != DD_OK) return FALSE;
+
+		ChangeBPP(16);
+
 		memset( (VOID *)&ddsd, 0, sizeof(ddsd) );
 		ddsd.dwSize = sizeof( ddsd );
 		ddsd.dwFlags = DDSD_CAPS | DDSD_BACKBUFFERCOUNT;
@@ -91,6 +106,8 @@ BOOL DXC_ddraw::bInit(HWND hWnd)
 		ddVal = m_lpDD4->SetCooperativeLevel(hWnd, DDSCL_NORMAL);
 		if (ddVal != DD_OK) return FALSE;
 		
+		ChangeBPP(16);
+
 		cx = cx/2;
 		cy = cy/2;
 		if(cy>280) cy -= 40;
@@ -166,7 +183,7 @@ BOOL DXC_ddraw::bInit(HWND hWnd)
 	m_init = true;
 
 	//if(!m_bFullMode)
-	ChangeDisplayMode(hWnd);
+	//ChangeDisplayMode(hWnd);
 	return TRUE;
 }
 
@@ -497,7 +514,7 @@ void DXC_ddraw::ClearBackB4()
 	DDSURFACEDESC2 ddsd2;	
 	ddsd2.dwSize = sizeof(ddsd2);
 	if (m_lpBackB4->Lock(NULL, &ddsd2, DDLOCK_WAIT, NULL) != DD_OK) return;
-	memset((char *)ddsd2.lpSurface, 0, ddsd2.lPitch * 600);
+	memset((char *)ddsd2.lpSurface, 0, ddsd2.lPitch * _res_y);
 	m_lpBackB4->Unlock(NULL);
 }
 
@@ -507,6 +524,15 @@ void DXC_ddraw::DrawShadowBox(short sX, short sY, short dX, short dY, int iType)
 	int ix, iy;
 
 	pDst = (WORD *)m_pBackB4Addr + sX + ((sY)*m_sBackB4Pitch);
+
+	if (dX >= _res_x) dX = _res_x - 1;
+	if (dX < 0)	return;
+	if (sX < 0)	sX = 0;
+	if (sX >= _res_x) return;
+	if (dY >= _res_y) dY = _res_y - 1;
+	if (dY < 0)	return;
+	if (sY < 0)	sY = 0;
+	if (sY >= _res_y) return;
 
 	if (iType == 0) {
 		switch (m_cPixelFormat) {

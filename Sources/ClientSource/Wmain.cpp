@@ -486,8 +486,55 @@ BOOL InitInstance( HINSTANCE hInstance, int nCmdShow )
 {	int cx = GetSystemMetrics(SM_CXFULLSCREEN)/2;
 	int cy = GetSystemMetrics(SM_CYFULLSCREEN)/2;
 	if(cy>280) cy -= 40;
-	G_hWnd = CreateWindowEx(NULL, szAppClass, "Helbreath Crusade", WS_POPUP, cx-320, cy-240, 
-							640, 480, NULL, NULL, hInstance, NULL);  
+
+	int res_x = 640, res_y = 480;
+
+	auto read_login_cfg_resolution = [&]()
+	{
+{FILE * pFile;
+ HANDLE hFile;
+ DWORD  dwFileSize;
+ char * cp, * token, cReadMode;
+ char seps[] = "= ,\t\n";
+ 	cReadMode = 0;
+	char cFn[] = "login.cfg";
+	// Get file size only
+	hFile = CreateFile(cFn, GENERIC_READ, NULL, NULL, OPEN_EXISTING, NULL, NULL);
+	dwFileSize = GetFileSize(hFile, NULL);
+	if (hFile != INVALID_HANDLE_VALUE) CloseHandle(hFile);
+	pFile = fopen(cFn, "rt");
+	if (pFile == NULL) return FALSE;
+	cp = new char[dwFileSize+2];
+	ZeroMemory(cp, dwFileSize+2);
+	fread(cp, dwFileSize, 1, pFile);
+	token = strtok( cp, seps );
+	while( token != NULL )
+	{	if (cReadMode != 0)
+		{	switch (cReadMode) {
+				case 6:
+					if(atoi(token) > 0)
+					{
+						res_x = 800;
+						res_y = 600;
+					}
+					cReadMode = 0;
+					break;
+			}
+		}else
+		{
+			if (memcmp(token, "new-resolution",14) == 0)   cReadMode = 6;
+		}
+		token = strtok( NULL, seps );
+	}
+	delete[] cp;
+	if (pFile != NULL) fclose(pFile);
+	return TRUE;
+}
+};
+	read_login_cfg_resolution();
+
+	G_hWnd = CreateWindowEx(NULL, szAppClass, "Helbreath Crusade", WS_POPUP, cx-(res_x / 2), cy-(res_y / 2), 
+							res_x, res_y, NULL, NULL, hInstance, NULL);  
     if (!G_hWnd) return FALSE;
     G_hInstance	= hInstance;
 	ShowWindow(G_hWnd, SW_SHOWDEFAULT);
