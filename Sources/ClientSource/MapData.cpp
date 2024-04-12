@@ -65,7 +65,7 @@ void CMapData::SetupHumanSprite()
 		m_stFrame[i][DEF_OBJECTMAGIC].m_sMaxFrame = 15;
 		m_stFrame[i][DEF_OBJECTMAGIC].m_sFrameTime = int(40 * mod);
 		m_stFrame[i][DEF_OBJECTGETITEM].m_sMaxFrame = 3;
-		m_stFrame[i][DEF_OBJECTGETITEM].m_sFrameTime = int(50 * mod);
+		m_stFrame[i][DEF_OBJECTGETITEM].m_sFrameTime = int(75 * mod);
 		m_stFrame[i][DEF_OBJECTDAMAGE].m_sMaxFrame = 7;
 		m_stFrame[i][DEF_OBJECTDAMAGE].m_sFrameTime = int(32 * mod);
 		m_stFrame[i][DEF_OBJECTDYING].m_sMaxFrame = 12;
@@ -2223,7 +2223,7 @@ int CMapData::iObjectFrameCounter(char * cPlayerName, short sViewPointX, short s
 			{	
 				if(!m_pGame->_new_camera)
 				{
-					if ((dwTime - m_pData[dX][dY].m_dwOwnerTime) >= (dwFrameTime +dwFrameTime))
+					if (m_pGame->_skip_frames && (dwTime - m_pData[dX][dY].m_dwOwnerTime) >= (dwFrameTime +dwFrameTime))
 					{	
 						iSkipFrame = ((dwTime - m_pData[dX][dY].m_dwOwnerTime)/dwFrameTime);
 						if (iSkipFrame > 3)

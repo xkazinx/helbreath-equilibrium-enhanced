@@ -15244,6 +15244,11 @@ BOOL CGame::bReadLoginConfigFile(char * cFn)
 					_new_speed = (bool)(atoi(token) > 0);
 					cReadMode = 0;
 					break;
+
+				case 9:
+					_skip_frames = (bool)(atoi(token) > 0);
+					cReadMode = 0;
+					break;
 			}
 		}else
 		{	if (memcmp(token, "log-server-address",18) == 0) cReadMode = 1;
@@ -15254,6 +15259,7 @@ BOOL CGame::bReadLoginConfigFile(char * cFn)
 			if (memcmp(token, "new-resolution",14) == 0)   cReadMode = 6;
 			if (memcmp(token, "new-camera",10) == 0)   cReadMode = 7;
 			if (memcmp(token, "new-speed",9) == 0)   cReadMode = 8;
+			if (memcmp(token, "skip-frames",11) == 0)   cReadMode = 9;
 		}
 		token = strtok( NULL, seps );
 	}
@@ -31331,6 +31337,23 @@ BOOL CGame::bCheckLocalChatCommand(char * pMsg)
 		
 		m_pMapData->SetupHumanSprite();
 	    AddEventList(format("New camera: {}", _new_camera ? "On" : "Off").data(), 10);
+		return TRUE;
+	}
+	
+	else if (memcmp(cBuff, "/togglespeed", 12) == 0)
+	{	
+		_new_speed = !_new_speed ;
+		
+		m_pMapData->SetupHumanSprite();
+	    AddEventList(format("New speed: {}", _new_speed  ? "On" : "Off").data(), 10);
+		return TRUE;
+	}
+	else if (memcmp(cBuff, "/skipframes", 11) == 0)
+	{	
+		_skip_frames = !_skip_frames;
+		
+		m_pMapData->SetupHumanSprite();
+	    AddEventList(format("Skip frames: {}", _skip_frames ? "On" : "Off").data(), 10);
 		return TRUE;
 	}
 	if (memcmp(cBuff, "/tooff", 6) == 0)

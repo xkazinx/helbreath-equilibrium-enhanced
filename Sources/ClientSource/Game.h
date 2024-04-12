@@ -160,6 +160,7 @@ class CGame
 public:
 	bool _new_camera = true;
 	bool _new_speed = false;
+	bool _skip_frames = true;
 	// CLEROTH - AURAS
 	void CheckActiveAura(short sX, short sY, DWORD dwTime, short sOwnerType);
 	void CheckActiveAura2(short sX, short sY, DWORD dwTime, short sOwnerType);

@@ -11,3 +11,4 @@ windowed = 0
 new-resolution = 1
 new-camera = 0
 new-speed = 1
+skip-frames = 1
