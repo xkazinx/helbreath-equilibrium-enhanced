@@ -3,7 +3,6 @@
 
 game-server-mode    = INTERNET
 
-// log-server-address 
 log-server-address  = 192.168.0.86
 log-server-port     = 2981
 
