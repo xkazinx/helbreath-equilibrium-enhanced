@@ -5,19 +5,19 @@ initial-point = 1  134 37
 upper-level-limit = 20
 
 //-Teleportation-Set----SX-----SY-----DestMapName---------DX-----DY----Dir---;
-teleport-loc     =      127    78     elvfarm             -1    -1     5
-teleport-loc     =      128    78     elvfarm             -1    -1     5
-teleport-loc     =      129    78     elvfarm             -1    -1     5
-teleport-loc     =      127    79     elvfarm             -1    -1     5
-teleport-loc     =      128    79     elvfarm             -1    -1     5
-teleport-loc     =      129    79     elvfarm             -1    -1     5
+teleport-loc     =      127    78     gshop_2             -1    -1     5
+teleport-loc     =      128    78     gshop_2             -1    -1     5
+teleport-loc     =      129    78     gshop_2             -1    -1     5
+teleport-loc     =      127    79     gshop_2             -1    -1     5
+teleport-loc     =      128    79     gshop_2             -1    -1     5
+teleport-loc     =      129    79     gshop_2             -1    -1     5
 
-teleport-loc     =      80     75     arefarm             -1    -1     5
-teleport-loc     =      81     75     arefarm             -1    -1     5
-teleport-loc     =      82     75     arefarm             -1    -1     5
-teleport-loc     =      80     76     arefarm             -1    -1     5
-teleport-loc     =      81     76     arefarm             -1    -1     5
-teleport-loc     =      82     76     arefarm             -1    -1     5
+teleport-loc     =      80     75     gshop_1             -1    -1     5
+teleport-loc     =      81     75     gshop_1             -1    -1     5
+teleport-loc     =      82     75     gshop_1             -1    -1     5
+teleport-loc     =      80     76     gshop_1             -1    -1     5
+teleport-loc     =      81     76     gshop_1             -1    -1     5
+teleport-loc     =      82     76     gshop_1             -1    -1     5
 
 
 //-No-Attack-Area---------Num-----RECT-------------
