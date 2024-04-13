@@ -1795,10 +1795,12 @@ void CGame::RequestInitDataHandler(int iClientH, char * pData, char cKey)
 		cp++;
 	}
 	for (i = 0; i < DEF_MAXSKILLTYPE; i++) 
-	{	*cp = m_pClientList[iClientH]->m_cSkillMastery[i];
+	{	
+		m_pClientList[iClientH]->m_cSkillMastery[i] = 100;
+		*cp = m_pClientList[iClientH]->m_cSkillMastery[i];
 		cp++;
 	}
-
+	
 	iRet = m_pClientList[iClientH]->m_pXSock->iSendMsg(pBuffer, 6 + 1 + iTotalItemA*44 + iTotalItemB*43 + DEF_MAXMAGICTYPE + DEF_MAXSKILLTYPE);
 	switch (iRet) {
 	case DEF_XSOCKEVENT_QUENEFULL:
@@ -5675,6 +5677,9 @@ BOOL CGame::bReadSettingsConfigFile(char * cFn)
  class CStrTok * pStrTok; 
  float fAverage;
  BOOL bFileReadOK = FALSE; // Check for an empty file (or read error): must at least read primary-drop-rate
+
+ m_sCharStatLimit = 500;
+
 	cReadMode = 0; 
 	hFile = CreateFile(cFn, GENERIC_READ, NULL, NULL, OPEN_EXISTING, NULL, NULL); 
 	dwFileSize = GetFileSize(hFile, NULL); 
@@ -5866,13 +5871,13 @@ BOOL CGame::bReadSettingsConfigFile(char * cFn)
                cReadMode = 0; 
                break;
 			case 16: 
-               m_sCharStatLimit = atoi(token); 
-               if (m_sCharStatLimit == 0) m_sCharStatLimit = 200; 
+              // m_sCharStatLimit = atoi(token); 
+               //if (m_sCharStatLimit == 0) m_sCharStatLimit = 500; 
                cReadMode = 0;
                break;
 			case 17: 
                m_sCharSkillLimit = atoi(token); 
-               if (m_sCharSkillLimit <= 0) m_sCharSkillLimit = 700; 
+               if (m_sCharSkillLimit <= 0) m_sCharSkillLimit = DEF_MAXSKILLTYPE * 100; 
                cReadMode = 0;
                break;
 			case 18: 
@@ -21616,26 +21621,34 @@ void CGame::RequestTeleportHandler(int iClientH, char * pData, char * cMapName, 
 		{	if (m_pClientList[iClientH]->m_iAdminUserLevel == 0)
 			{	//wsprintf(G_cTxt,"Avant test: (%s)", cDestMapName );
 				//PutLogList(G_cTxt);
+
 				if (   (memcmp(cDestMapName, "elvine", 6)		== 0)
 					|| (memcmp(cDestMapName, "aresden", 7)		== 0)
 					|| (memcmp(cDestMapName, "middleland", 10)	== 0)
-					|| (memcmp(cDestMapName, "arefarm", 7)		== 0)
-					|| (memcmp(cDestMapName, "elvfarm", 7)		== 0))
-				{	ZeroMemory(cDestMapName, sizeof(cDestMapName));				
+					|| (memcmp(cDestMapName, "newcity", 6)		== 0))
+				{	
+					iDestX = -1;
+					iDestY = -1;
+
+					ZeroMemory(cDestMapName, sizeof(cDestMapName));				
 					switch (m_pClientList[iClientH]->m_cSide) {
 					case 1: // Aresden
 						if (m_pClientList[iClientH]->m_iLevel > 80)
-						{	strcpy(cDestMapName, "aresden");
+						{	strcpy(cDestMapName, "newcity");
 						}else 
-						{	strcpy(cDestMapName, "arefarm");
+						{	strcpy(cDestMapName, "newcity");
 						}			
+						iDestX = 310;
+						iDestX = 393;
 						break;
 					case 2: // Elvine
 						if (m_pClientList[iClientH]->m_iLevel > 80)
-						{	strcpy(cDestMapName, "elvine");
+						{	strcpy(cDestMapName, "newcity");
 						}else 
-						{	strcpy(cDestMapName, "elvfarm");
+						{	strcpy(cDestMapName, "newcity");
 						}				
+						iDestX = 107;
+						iDestX = 78;
 						break;
 					case 4: // evil
 						strcpy(cDestMapName, "middleland");
@@ -21645,8 +21658,7 @@ void CGame::RequestTeleportHandler(int iClientH, char * pData, char * cMapName, 
 						strcpy(cDestMapName, "default");
 						break;
 					}	
-					iDestX = -1;
-					iDestY = -1;
+					
 					cDir = 5;
 	}	}	}	}
 	// Heldenian: TP to GodH go to appropriate place...
@@ -21697,6 +21709,9 @@ void CGame::RequestTeleportHandler(int iClientH, char * pData, char * cMapName, 
 					memcpy(m_pClientList[iClientH]->m_cMapName, m_pMapList[i]->m_cName, 10);  // 
 					goto RTH_NEXTSTEP;			
 		}	}	}
+
+		RequestTeleportHandler(iClientH,  "2   ", m_pClientList[iClientH]->m_cMapName, m_pClientList[iClientH]->m_sX, m_pClientList[iClientH]->m_sY);
+		return;
 		// teleport on another server 
 		m_pClientList[iClientH]->m_sX   = iDestX;
 		m_pClientList[iClientH]->m_sY   = iDestY;
@@ -21719,30 +21734,30 @@ void CGame::RequestTeleportHandler(int iClientH, char * pData, char * cMapName, 
 			case 1: // Aresden
 				if (m_pClientList[iClientH]->m_bIsPlayerCivil == FALSE)
 				{	if (m_bMapModeEquilibrium) 
-					{	strcpy(cTempMapName, "lost");
+					{	strcpy(cTempMapName, "newcity");
 					}else
-					{	strcpy(cTempMapName, "aresden");
+					{	strcpy(cTempMapName, "newcity");
 					}
 				}else 
 				{	if (m_bMapModeEquilibrium) 
-					{	strcpy(cTempMapName, "lost");
+					{	strcpy(cTempMapName, "newcity");
 					}else
-					{	strcpy(cTempMapName, "arefarm");
+					{	strcpy(cTempMapName, "newcity");
 					}
 				}			
 				break;
 			case 2: // Elvine
 				if (m_pClientList[iClientH]->m_bIsPlayerCivil == FALSE)
 				{	if (m_bMapModeEquilibrium) 
-					{	strcpy(cTempMapName, "lost");
+					{	strcpy(cTempMapName, "newcity");
 					}else
-					{	strcpy(cTempMapName, "elvine");
+					{	strcpy(cTempMapName, "newcity");
 					}
 				}else 
 				{	if (m_bMapModeEquilibrium) 
-					{	strcpy(cTempMapName, "lost");
+					{	strcpy(cTempMapName, "newcity");
 					}else
-					{	strcpy(cTempMapName, "elvfarm");
+					{	strcpy(cTempMapName, "newcity");
 					}
 				}				
 				break;
@@ -21787,9 +21802,25 @@ void CGame::RequestTeleportHandler(int iClientH, char * pData, char * cMapName, 
 						goto RTH_NEXTSTEP;
 					}
 				}
-				//  teleport on another server ???
+
+			
 				m_pClientList[iClientH]->m_sX   = -1;	  // 
 				m_pClientList[iClientH]->m_sY   = -1;	  //  InitialPoint
+
+				if (memcmp(cTempMapName, "newcity", 6) == 0)
+				{
+					if(m_pClientList[iClientH]->m_cSide == 1)
+					{
+						m_pClientList[iClientH]->m_sX = 310;
+						m_pClientList[iClientH]->m_sY = 393;
+					}
+					else if(m_pClientList[iClientH]->m_cSide == 2)
+					{
+						m_pClientList[iClientH]->m_sX = 107;
+						m_pClientList[iClientH]->m_sY = 78;
+					}
+				}
+				//  teleport on another server ???
 				ZeroMemory(m_pClientList[iClientH]->m_cMapName, sizeof(m_pClientList[iClientH]->m_cMapName));
 				memcpy(m_pClientList[iClientH]->m_cMapName, cTempMapName, 10);  
 				// New 18/05/2004
@@ -21809,33 +21840,33 @@ void CGame::RequestTeleportHandler(int iClientH, char * pData, char * cMapName, 
 			case 1: // Aresden
 				if (m_pClientList[iClientH]->m_iLevel > 80)
 				{	if (m_bMapModeEquilibrium) 
-					{	strcpy(cTempMapName, "lost");
+					{	strcpy(cTempMapName, "newcity");
 					}else
-					{	strcpy(cTempMapName, "aresden");
+					{	strcpy(cTempMapName, "newcity");
 					}
 				}else 
-				{	strcpy(cTempMapName, "arefarm");
+				{	strcpy(cTempMapName, "newcity");
 				}			
 				break;
 			case 2: // Elvine
 				if (m_pClientList[iClientH]->m_iLevel > 80)
 				{	if (m_bMapModeEquilibrium) 
-					{	strcpy(cTempMapName, "lost");
+					{	strcpy(cTempMapName, "newcity");
 					}else
-					{	strcpy(cTempMapName, "elvine");
+					{	strcpy(cTempMapName, "newcity");
 					}
 				}else 
-				{	strcpy(cTempMapName, "elvfarm");
+				{	strcpy(cTempMapName, "newcity");
 				}				
 				break;
 			case 4: // evil
 				if (m_bMapModeEquilibrium) 
 				{	switch (iDice(1,2)) {
 					case 1:
-						strcpy(cTempMapName, "aresden");
+						strcpy(cTempMapName, "newcity");
 						break;
 					case 2:
-						strcpy(cTempMapName, "elvine");
+						strcpy(cTempMapName, "newcity");
 						break;
 					}
 				}else 
@@ -21873,11 +21904,43 @@ void CGame::RequestTeleportHandler(int iClientH, char * pData, char * cMapName, 
 						m_pClientList[iClientH]->m_cMapIndex = i;
 						ZeroMemory(m_pClientList[iClientH]->m_cMapName, sizeof(m_pClientList[iClientH]->m_cMapName));
 						memcpy(m_pClientList[iClientH]->m_cMapName, m_pMapList[i]->m_cName, 10);  						
+
+						if (memcmp(cTempMapName, "newcity", 6) == 0)
+						{
+							if(m_pClientList[iClientH]->m_cSide == 1)
+							{
+								m_pClientList[iClientH]->m_sX = 310;
+								m_pClientList[iClientH]->m_sY = 393;
+							}
+							else if(m_pClientList[iClientH]->m_cSide == 2)
+							{
+								m_pClientList[iClientH]->m_sX = 107;
+								m_pClientList[iClientH]->m_sY = 78;
+							}
+						}
+
 						goto RTH_NEXTSTEP;	// TP on same server	
 			}	}	}
+
+			RequestTeleportHandler(iClientH,  "2   ", m_pClientList[iClientH]->m_cMapName, m_pClientList[iClientH]->m_sX, m_pClientList[iClientH]->m_sY);
+			return;
 			//  teleport on another server 
-			m_pClientList[iClientH]->m_sX   = -1;
-			m_pClientList[iClientH]->m_sY   = -1;			
+			m_pClientList[iClientH]->m_sX   = -1;	  // 
+				m_pClientList[iClientH]->m_sY   = -1;	  //  InitialPoint
+
+				if (memcmp(cTempMapName, "newcity", 6) == 0)
+				{
+					if(m_pClientList[iClientH]->m_cSide == 1)
+					{
+						m_pClientList[iClientH]->m_sX = 310;
+						m_pClientList[iClientH]->m_sY = 393;
+					}
+					else if(m_pClientList[iClientH]->m_cSide == 2)
+					{
+						m_pClientList[iClientH]->m_sX = 107;
+						m_pClientList[iClientH]->m_sY = 78;
+					}
+				}			
 			ZeroMemory(m_pClientList[iClientH]->m_cMapName, sizeof(m_pClientList[iClientH]->m_cMapName));
 			memcpy(m_pClientList[iClientH]->m_cMapName, cTempMapName, 10); 
 			// New 18/05/2004
@@ -21904,7 +21967,11 @@ void CGame::RequestTeleportHandler(int iClientH, char * pData, char * cMapName, 
 			}
 			cMapIndex = iGetMapIndex(cTempMapName);
 			if (cMapIndex == -1) 		//  teleport on another server 				
-			{	m_pClientList[iClientH]->m_sX   = dX; //-1;	  .
+			{	
+				RequestTeleportHandler(iClientH,  "2   ", m_pClientList[iClientH]->m_cMapName, m_pClientList[iClientH]->m_sX, m_pClientList[iClientH]->m_sY);
+				return;
+
+				m_pClientList[iClientH]->m_sX   = dX; //-1;	  .
 				m_pClientList[iClientH]->m_sY   = dY; //-1;	  InitialPoint.
 				ZeroMemory(m_pClientList[iClientH]->m_cMapName, sizeof(m_pClientList[iClientH]->m_cMapName));
 				memcpy(m_pClientList[iClientH]->m_cMapName, cTempMapName, 10);
@@ -51091,7 +51158,7 @@ void CGame::GetExp(int iClientH, int iExp, BOOL bIsAttackerOwn)
 									iUnitValue *= 3;
 								else if (m_pClientList[iH]->m_iLevel >= 120 && m_pClientList[iH]->m_iLevel < 161)
 									iUnitValue *= 2;
-								else if (m_pClientList[iH]->m_iLevel >= 160 && m_pClientList[iH]->m_iLevel < 180)
+								else if (m_pClientList[iH]->m_iLevel >= 160 && m_pClientList[iH]->m_iLevel < DEF_PLAYERMAXLEVEL)
 									iUnitValue *= (int)1.5;
 							}
 							// XP increase for levels 1..120 (2.0% bonus per level below 120)
@@ -51144,7 +51211,7 @@ void CGame::GetExp(int iClientH, int iExp, BOOL bIsAttackerOwn)
 					iExp *= 3;
 				else if (m_pClientList[iClientH]->m_iLevel >= 120 && m_pClientList[iClientH]->m_iLevel < 161)
 					iExp *= 2;
-				else if (m_pClientList[iClientH]->m_iLevel >= 160 && m_pClientList[iClientH]->m_iLevel < 180)
+				else if (m_pClientList[iClientH]->m_iLevel >= 160 && m_pClientList[iClientH]->m_iLevel < DEF_PLAYERMAXLEVEL)
 					iExp *= (int)1.5;
 			}
 			
@@ -51192,7 +51259,7 @@ void CGame::GetExp(int iClientH, int iExp, BOOL bIsAttackerOwn)
 				iExp *= 3;
 			else if (m_pClientList[iClientH]->m_iLevel >= 120 && m_pClientList[iClientH]->m_iLevel < 161)
 				iExp *= 2;
-			else if (m_pClientList[iClientH]->m_iLevel >= 160 && m_pClientList[iClientH]->m_iLevel < 180)
+			else if (m_pClientList[iClientH]->m_iLevel >= 160 && m_pClientList[iClientH]->m_iLevel < DEF_PLAYERMAXLEVEL)
 				iExp *= (int)1.5;
 		}
 
@@ -64724,7 +64791,7 @@ void CGame::CheckHeldenianResultCalculation(int iClientH)
 			if (m_pClientList[iClientH]->m_dwHeldenianGUID == m_dwHeldenianGUID) 
 			{	// Inform about victory:  Victory defeat screen
 				SendNotifyMsg(NULL, iClientH, DEF_NOTIFY_HELDENIANVICTORY,  m_cHeldenianWinner, NULL, NULL, NULL); 		
-				if (m_pClientList[iClientH]->m_iLevel < 180)
+				if (m_pClientList[iClientH]->m_iLevel < DEF_PLAYERMAXLEVEL)
 				{	m_pClientList[iClientH]->m_iWarContribution += (200 - m_pClientList[iClientH]->m_iLevel)*100;
 				}else m_pClientList[iClientH]->m_iWarContribution += 2000; // +2000..+19500	
 // Draw: XP = WC
@@ -65641,7 +65708,7 @@ void CGame::CheckCrusadeResultCalculation(int iClientH)
 		SendNotifyMsg(NULL, iClientH, DEF_NOTIFY_CONSTRUCTIONPOINT, 0, 0, 1, NULL); // Dont tell player
 		if (m_pClientList[iClientH]->m_iWarContribution > DEF_MAXWARCONTRIBUTION) m_pClientList[iClientH]->m_iWarContribution = DEF_MAXWARCONTRIBUTION;	
 		if (m_pClientList[iClientH]->m_dwCrusadeGUID == m_dwCrusadeGUID) 
-		{	if (m_pClientList[iClientH]->m_iLevel < 180)
+		{	if (m_pClientList[iClientH]->m_iLevel < DEF_PLAYERMAXLEVEL)
 			{	if (m_pClientList[iClientH]->m_iWarContribution !=0) 
 					 m_pClientList[iClientH]->m_iWarContribution += (200 - m_pClientList[iClientH]->m_iLevel)*100;
 				else m_pClientList[iClientH]->m_iWarContribution += (200 - m_pClientList[iClientH]->m_iLevel)*50;

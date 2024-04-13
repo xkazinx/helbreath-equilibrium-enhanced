@@ -4645,7 +4645,7 @@ void CGame::InitGameSettings()
 		m_cMagicMastery[i] = NULL;
 
 	for (i = 0; i < DEF_MAXSKILLTYPE; i++)
-		m_cSkillMastery[i] = NULL;
+		m_cSkillMastery[i] = 100;
 
 	for (i = 0; i < DEF_TEXTDLGMAXLINES; i++) {
 		if (m_pMsgTextList[i] != NULL)
@@ -20856,7 +20856,7 @@ void CGame::DrawDialogBox_Inventory(int msX, int msY)
  char cItemColor;
 	sX = m_stDialogBoxInfo[2].sX;
 	sY = m_stDialogBoxInfo[2].sY;
-	DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_INVENTORY, sX, sY, 0);
+	DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_INVENTORY, sX, sY, 0, 0, TRUE);
 	for (i = 0; i < DEF_MAXITEMS; i++)
 	if ((m_cItemOrder[i] != -1) && (m_pItemList[m_cItemOrder[i]] != NULL))
 	{	if (   ((m_stMCursor.cSelectedObjectType == DEF_SELECTEDOBJTYPE_ITEM)

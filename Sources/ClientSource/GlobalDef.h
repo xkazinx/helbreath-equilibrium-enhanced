@@ -23,7 +23,7 @@
 #define DEF_SERVER_IP			"192.168.1.101"
 #define DEF_SERVER_PORT			2848
 
-#define DEF_MAX_STATS			250
+#define DEF_MAX_STATS			500
 #define DEF_MAX_DELETE_LEVEL	50 // Max level to delete a character from client
 
 #define DEF_SNOW_POSITION_Y		430 // Used to change snow position il status bar changed.(def 426)

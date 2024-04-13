@@ -91,7 +91,7 @@ using std::format;
 #define DEF_MAXSKILLPOINTS		700			// ½ºÅ³ Æ÷ÀÎÆ®ÀÇ ÃÑÇÕ 
 #define DEF_NIGHTTIME			40
 
-#define DEF_CHARPOINTLIMIT		1000		// °¢°¢ÀÇ Æ¯¼ºÄ¡ÀÇ ÃÖ´ë°ª 
+#define DEF_CHARPOINTLIMIT		500 // °¢°¢ÀÇ Æ¯¼ºÄ¡ÀÇ ÃÖ´ë°ª 
 #define DEF_RAGPROTECTIONTIME	7000		// Snoopy: was 7000, increased and stopped the protection if moving/casting
 #define DEF_LOGPROTECTIONTIME	20000		// Snoopy: protection on connect
 #define DEF_MAXREWARDGOLD		99999999	// Æ÷»ó±Ý ÃÖ´ëÄ¡ 
@@ -226,7 +226,7 @@ using std::format;
 //============================
 
 //============================
-#define DEF_PLAYERMAXLEVEL	180				// 
+#define DEF_PLAYERMAXLEVEL	220				// 
 //============================
 
 //============================
