@@ -1173,6 +1173,22 @@ int CGame::iClientMotion_Move_Handler(int iClientH, short sX, short sY, char cDi
  int   * ip, iRet, iSize, iDamage, iTemp, iTemp2;
  BOOL  bRet;
  BOOL bTransparentInvi = FALSE;
+	auto teleport = [&]()
+	{
+		int mapindex = -1;
+		mapindex = iGetMapIndex(m_pClientList[iClientH]->m_cMapName);
+
+		if (mapindex != -1)
+		{
+			for (int i = 0; i < DEF_MAXTELEPORTLOC; i++){
+				if ((m_pMapList[mapindex]->m_pTeleportLoc[i] != NULL) && (m_pMapList[mapindex]->m_pTeleportLoc[i]->m_sSrcX == m_pClientList[iClientH]->m_sX) && (m_pMapList[mapindex]->m_pTeleportLoc[i]->m_sSrcY == m_pClientList[iClientH]->m_sY))
+				{
+					if (m_pClientList[iClientH] != NULL) RequestTeleportHandler(iClientH, "2   ");
+					return 1;
+				}
+			}
+		}
+	};
 	if (m_pClientList[iClientH] == NULL) return 0;
 	if ((cDir <= 0) || (cDir > 8))       return 0;
 	if (m_pClientList[iClientH]->m_bIsKilled == TRUE) return 0;
@@ -1351,8 +1367,12 @@ int CGame::iClientMotion_Move_Handler(int iClientH, short sX, short sY, char cDi
 			DeleteClient(iClientH, TRUE, TRUE);
 			return 0;
 		}
+
+		teleport();
 		return 0;
 	}
+
+	teleport();
 	return 1;
 }
 

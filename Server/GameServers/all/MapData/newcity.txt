@@ -1,13 +1,58 @@
 [MAP-INFO]
 
-//map-location  = elvine
-initial-point = 1  158 57
-initial-point = 2  110 89
-initial-point = 3  170 145
-initial-point = 4  242 129
-initial-point = 5  158 249
-
 maximum-object		= 600
 random-mob-generator	= 1  1
+
+initial-point	=	1	203	254
+
+teleport-loc     =      84 79    gshop_2             50     39    4
+
+teleport-loc     =      87 79    gshop_2             50     39    4
+
+teleport-loc     =      293 407    gshop_1             50     39    4
+
+teleport-loc     =      290 407    gshop_1             50     39    4
+
+
+
+
+teleport-loc     =      141 157    newcity             292 120    4
+
+teleport-loc     =      140 156    newcity             292 120    4
+
+teleport-loc     =      139 155    newcity             292 120    4
+
+teleport-loc     =      142 158    newcity             292 120    4
+
+teleport-loc     =      143 159    newcity             292 120    4
+
+
+
+teleport-loc     =      293 119    newcity             139 158    4
+
+
+
+
+teleport-loc     =      166 380    newcity             358 310    4
+
+teleport-loc     =      165 379    newcity             358 310    4
+
+teleport-loc     =      164 378    newcity             358 310    4
+
+teleport-loc     =      167 381    newcity             358 310    4
+
+teleport-loc     =      168 382    newcity             358 310    4
+
+
+
+teleport-loc     =      357 309    newcity             165 380    4
+
+teleport-loc     =      356 310    newcity             165 380    4
+
+teleport-loc     =      355 311    newcity             165 380    4
+
+teleport-loc     =      358 308    newcity             165 380    4
+
+teleport-loc     =      359 307    newcity             165 380    4
 
 [END-MAP-INFO]

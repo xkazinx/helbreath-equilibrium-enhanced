@@ -32601,9 +32601,16 @@ void CGame::UpdateScreen_OnGame()
 		m_pEffectSpr[89]->PutTransSprite(1648 - m_sViewPointX, 3913 - m_sViewPointY, _tmp_iEffectFrame %12, 0);
 	}
 	//Snoopy: Add Apocalypse Gate and apocalypse map effects (if no Gate, m_iGatePositX will be -1...
-	if (   (m_iGatePositX >= m_sViewPointX/32) && (m_iGatePositX <= m_sViewPointX/32 + 20)
-		&& (m_iGatePositY >= m_sViewPointY/32) && (m_iGatePositY <= m_sViewPointY/32 + 15))
-	{	m_pEffectSpr[101]->PutTransSprite(m_iGatePositX*32 - m_sViewPointX - 96, m_iGatePositY*32 - m_sViewPointY - 69, _tmp_iEffectFrame%30, dwTime);
+
+	if(memcmp(m_cMapName, "newcity", 7) == 0)
+	{
+		m_iGatePositX = 293;
+		m_iGatePositY = 119;
+
+		if (   (m_iGatePositX >= m_sViewPointX/32) && (m_iGatePositX <= m_sViewPointX/32 + 20)
+			&& (m_iGatePositY >= m_sViewPointY/32) && (m_iGatePositY <= m_sViewPointY/32 + 15))
+		{	m_pEffectSpr[101]->PutTransSprite(m_iGatePositX*32 - m_sViewPointX - 96, m_iGatePositY*32 - m_sViewPointY - 69, _tmp_iEffectFrame%30, dwTime);
+		}
 	}
 	if (iUpdateRet != 0)
 		DrawDialogBoxs(msX, msY, msZ, cLB);
