@@ -19833,26 +19833,32 @@ void CGame::DrawDialogBox_IconPannel(short msX, short msY)
 		}
 	}else wsprintf(G_cTxt, "%s(%d,%d)", m_cMapMessage, m_sPlayerX, m_sPlayerY);
 	PutAlignedString(135 + fix_x, 328 + fix_x, 456 + fix_y, G_cTxt, 200,200,120);
-	/*
+	
 	int iMaxPoint, iBarWidth;
-	
-	int topx = 639;
-	
-	if (IsNewRes())
-	{
-		topx = 799;
-	}
 
+	/*int topx = IsNewRes() ? 799 : 639;
 	// Experience Gauge - MORLA - arreglada para que vaya de izquierda a derecha
 	DWORD iMaxPoint3 = iGetLevelExp(m_iLevel + 1) - iGetLevelExp(m_iLevel);
 	DWORD uTemp = m_iExp - iGetLevelExp(m_iLevel);
 	iBarWidth = (uTemp * topx) / iMaxPoint3;
 	if (iBarWidth < 0) iBarWidth = 0;
 	if (iBarWidth > topx) iBarWidth = topx;
-	m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->PutSpriteFastWidth(0, sY + 2, 18, iBarWidth, m_dwCurTime);
+	m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->PutSpriteFastWidth(0, sY + 2, 18, iBarWidth, m_dwCurTime);*/
 
 	// HP
-	iMaxPoint = MAXHP(m_stat[STAT_VIT], m_iLevel, m_stat[STAT_STR]);
+
+#ifdef DEF_EQUILIBRIUM_PROJECT // HPs formula
+	if (m_iAngelicStr != 0) iMaxPoint = m_iVit * 3 + (m_iLevel * 3 + (m_iStr + m_iAngelicStr)) / 2;
+	else			       iMaxPoint = m_iVit * 3 + (m_iLevel * 3 + m_iStr) / 2;
+#else
+
+	if (m_iAngelicStr != 0) iMaxPoint = m_iVit * 3 + m_iLevel * 2 + (m_iStr + m_iAngelicStr) / 2;
+	else				   iMaxPoint = m_iVit * 3 + m_iLevel * 2 + m_iStr / 2;
+#endif
+
+	if (m_iHP > iMaxPoint) m_iHP = iMaxPoint;
+
+	//iMaxPoint = MAXHP(m_stat[STAT_VIT], m_iLevel, m_stat[STAT_STR]);
 	iBarWidth = 101 - (m_iHP * 101) / iMaxPoint;
 	if (m_iHP > iMaxPoint) m_iHP = iMaxPoint;
 	iBarWidth = 100 - (m_iHP * 100) / iMaxPoint;
@@ -19870,7 +19876,7 @@ void CGame::DrawDialogBox_IconPannel(short msX, short msY)
 	}
 
 	// MP
-	iMaxPoint = GetMaxMP();
+	iMaxPoint = (m_iMag + m_iAngelicMag)*2 + m_iLevel*2 + (m_iInt + m_iAngelicInt)/2;
 	iBarWidth = 101 - (m_iMP * 101) / iMaxPoint;
 	if (iBarWidth < 0) iBarWidth = 0;
 	if (iBarWidth > 100) iBarWidth = 100;
@@ -19878,7 +19884,8 @@ void CGame::DrawDialogBox_IconPannel(short msX, short msY)
 	wsprintf(G_cTxt, "%d", (short)m_iMP);
 	PutString_SprNum(sX + fix_x + 65, sY + 36, G_cTxt, 255, 255, 255);
 	// SP
-	iMaxPoint = m_iLevel * 2 + m_stat[STAT_STR] * 2;
+	if (m_iAngelicStr != 0) iMaxPoint = m_iLevel * 2 + (m_iStr + m_iAngelicStr) * 2;
+	else				   iMaxPoint = m_iLevel * 2 + m_iStr * 2;
 	iBarWidth = 167 - (m_iSP * 167) / iMaxPoint;
 	if (iBarWidth < 0) iBarWidth = 0;
 	if (iBarWidth > 167) iBarWidth = 167;
@@ -19886,17 +19893,13 @@ void CGame::DrawDialogBox_IconPannel(short msX, short msY)
 	wsprintf(G_cTxt, "%d", (short)m_iSP);
 	PutString_SprNum(sX + fix_x + 220, sY + 9, G_cTxt, 255, 255, 255);
 
-	// MORLA2 - Hunger Status
-	iMaxPoint = 100;
-	iBarWidth = 35 - (iHungerStatus * 35) / iMaxPoint;
-	if (iBarWidth < 0) iBarWidth = 0;
-	if (iBarWidth > 35) iBarWidth = 35;
-	m_pSprite[DEF_SPRID_INTERFACE_ND_ICONPANNEL]->PutSpriteFastWidth(sX + fix_x + 250 + 50 + 12, sY + 11, 17, iBarWidth, m_dwCurTime, true);
-	*/
 }
 
 void CGame::DrawDialogBox_GaugePannel()
-{	int iMaxPoint, iBarWidth;
+{	
+	return;
+
+	int iMaxPoint, iBarWidth;
 	// HP bar
 
 	int fix_x = 0, fix_y = 0;
