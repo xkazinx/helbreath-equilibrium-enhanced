@@ -32785,7 +32785,7 @@ void CGame::UpdateScreen_OnGame()
 	}
 
 	//Snoopy: Added diag "LEVEL UP" right down
-	if (m_iLU_Point >0) PutString_SprFont(560, 390, "Level Up", 250, 250, 0);
+	if (m_iLU_Point >0) PutString_SprFont(560 + (m_DDraw._res_x - 640), 390 + (m_DDraw._res_y - 480), "Level Up", 250, 250, 0);
 
 	if (m_cGameModeCount < 6) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
 	if (m_cGameModeCount < 2) m_DDraw.DrawShadowBox(0,0,m_DDraw._res_x - 1,m_DDraw._res_y - 1);
@@ -33268,7 +33268,7 @@ void CGame::CommandProcessor(short msX, short msY, short indexX, short indexY, c
 			}else if (iRet == 0)
 			{	m_stMCursor.cPrevStatus = DEF_CURSORSTATUS_PRESSED;
 				// Snoopy: Added Golden LevelUp
-				if (   (msX >560) && (msX <620) && (msY>390) && (msY<405)
+				if (   (msX >560 + (m_DDraw._res_x - 640)) && (msX <620 + (m_DDraw._res_x - 640)) && (msY>390 + (m_DDraw._res_y - 480)) && (msY<405 + (m_DDraw._res_y - 480))
 					&& (m_iLU_Point >0))
 				{	if (m_bIsDialogEnabled[12] != TRUE)
 					{	EnableDialogBox(12, NULL, NULL, NULL);
