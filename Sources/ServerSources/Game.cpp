@@ -27916,7 +27916,10 @@ void CGame::CalculateSSN_ItemIndex(int iClientH, short sWeaponIndex, int iValue)
 
 // SNOPY Added this function in case of manual or automated characteristic changes
 void CGame::Check_Skill_Is_Valid(int iClientH)
-{	if (m_pClientList[iClientH] == NULL) return;
+{	
+	return;
+
+	if (m_pClientList[iClientH] == NULL) return;
 	int sSkillIndex;
 	BOOL bSkillReduced = FALSE;
 	for (sSkillIndex = 0; sSkillIndex < DEF_MAXSKILLTYPE; sSkillIndex++)
