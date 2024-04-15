@@ -16,21 +16,27 @@ teleport-loc     =      290 407    gshop_1             50     39    4
 
 
 
-teleport-loc     =      141 157    newcity             292 120    4
+teleport-loc     =      141 157    newcity             191 184    4
 
-teleport-loc     =      140 156    newcity             292 120    4
+teleport-loc     =      140 156    newcity             191 184    4
 
-teleport-loc     =      139 155    newcity             292 120    4
+teleport-loc     =      139 155    newcity             191 184    4
 
-teleport-loc     =      142 158    newcity             292 120    4
+teleport-loc     =      142 158    newcity             191 184    4
 
-teleport-loc     =      143 159    newcity             292 120    4
-
-
-
-teleport-loc     =      293 119    newcity             139 158    4
+teleport-loc     =      143 159    newcity             191 184    4
 
 
+
+teleport-loc     =      192 183    newcity             140 158    4
+
+teleport-loc     =      191 182    newcity             140 158    4
+
+teleport-loc     =      190 181    newcity             140 158    4
+
+teleport-loc     =      193 184    newcity             140 158    4
+
+teleport-loc     =      194 185    newcity             140 158    4
 
 
 teleport-loc     =      166 380    newcity             358 310    4
@@ -42,7 +48,6 @@ teleport-loc     =      164 378    newcity             358 310    4
 teleport-loc     =      167 381    newcity             358 310    4
 
 teleport-loc     =      168 382    newcity             358 310    4
-
 
 
 teleport-loc     =      357 309    newcity             165 380    4

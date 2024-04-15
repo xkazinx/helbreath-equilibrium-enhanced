@@ -32602,7 +32602,8 @@ void CGame::UpdateScreen_OnGame()
 	}
 	//Snoopy: Add Apocalypse Gate and apocalypse map effects (if no Gate, m_iGatePositX will be -1...
 
-	if(memcmp(m_cMapName, "newcity", 7) == 0)
+	if(false)
+	//if(memcmp(m_cMapName, "newcity", 7) == 0)
 	{
 		m_iGatePositX = 293;
 		m_iGatePositY = 119;
