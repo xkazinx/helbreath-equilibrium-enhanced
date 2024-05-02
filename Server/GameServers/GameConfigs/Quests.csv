@@ -1,0 +1,17 @@
+quest_id,1
+side,aresden
+quest_mob,Scorpion,10,newcity
+quest_mob,Slime,10,newcity
+quest_reward,Hauberk(W),0
+quest_reward,Gold,50000
+quest_reward,Contribution,30
+quest_reward,Exp,500
+
+quest_id,2
+side,elvine
+quest_mob,Giant-Frog,50,newcity
+quest_mob,Giant-Scorpion,50,newcity
+quest_reward,Hauberk(M),0
+quest_reward,Gold,50000
+quest_reward,Contribution,30
+quest_reward,Exp,500

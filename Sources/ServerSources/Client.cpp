@@ -8,6 +8,8 @@
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
+#include "QuestMgr.h"
+
 CClient::CClient(HWND hWnd)
 {
  register int i;

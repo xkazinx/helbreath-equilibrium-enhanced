@@ -17,6 +17,7 @@
 #include "Item.h"
 #include "GuildsMan.h"
 #include "Magic.h"
+#include <common.h>
 
 #define DEF_CLIENTSOCKETBLOCKLIMIT	15
 
@@ -243,6 +244,8 @@ public:
 	short m_sItemEquipmentStatus[DEF_MAXITEMEQUIPPOS];
 	char  m_cArrowIndex;		// ÇÃ·¹ÀÌ¾î°¡ È°À» »ç¿ëÇÒ¶§ È­»ì ¾ÆÀÌÅÛ ÀÎµ¦½º. ÃÊ±â°ªÀº -1(ÇÒ´ç ¾ÈµÊ)
 
+	QuestHandler _quest;
+
 	char           m_cMagicMastery[DEF_MAXMAGICTYPE];
 	unsigned char  m_cSkillMastery[DEF_MAXSKILLTYPE]; // v1.4
 
@@ -268,6 +271,7 @@ public:
 	int   m_iFightzoneNumber , m_iReserveTime, m_iFightZoneTicketNumber ; 
 
 	class XSocket * m_pXSock;
+	int _handle;
 
 	int   m_iAdminUserLevel;     // °ü¸®ÀÚ ·¹º§. 0ÀÌ¸é ¹«È¿. ¹øÈ£°¡ ¿Ã¶ó°¥ ¼ö·Ï ±ÇÇÑÀÌ Ä¿Áø´Ù.
 	int   m_iRating;

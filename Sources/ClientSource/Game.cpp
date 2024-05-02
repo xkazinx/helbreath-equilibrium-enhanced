@@ -310,6 +310,13 @@ CGame::CGame()
 	m_stDialogBoxInfo[9].sSizeX = 128;
 	m_stDialogBoxInfo[9].sSizeY = 128;
 
+
+	//quest list
+	m_stDialogBoxInfo[52].sX = 100;
+	m_stDialogBoxInfo[52].sY = 50;
+	m_stDialogBoxInfo[52].sSizeX = 353; // 238
+	m_stDialogBoxInfo[52].sSizeY = 339; // 274
+
 	//Chatting History Dialog(F9)
 	m_stDialogBoxInfo[10].sX = 135;
 	m_stDialogBoxInfo[10].sY = 273;
@@ -543,7 +550,19 @@ CGame::CGame()
 }
 
 CGame::~CGame()
-{}
+{
+	for (auto& quest : _quests)
+	{
+		for (auto& reward : quest._rewards)
+		{
+			if (reward._id == QuestRewardID::Item && reward._item)
+			{
+				delete reward._item;
+				reward._item = nullptr;
+			}
+		}
+	}
+}
 
 BOOL CGame::bInit(HWND hWnd, HINSTANCE hInst, char * pCmdLine)
 {int iIndex;
@@ -2766,6 +2785,14 @@ void CGame::GameRecvMsgHandler(DWORD dwMsgSize, char * pData)
 		ResponseHeldenianTeleportList(pData);
 		break;
 
+	case MSG_NOTIFY_QUESTS:
+		Notify_Quests(pData + 6);
+		break;
+
+	case MSG_QUEST_DATA:
+		Notify_QuestData(pData + 6);
+		break;
+
 	case MSGID_RESPONSE_NOTICEMENT:
 		NoticementHandler(pData);
 		break;
@@ -3133,6 +3160,14 @@ void CGame::UpdateScreen_OnLoading(bool bActive)
 			if( m_hPakFile != INVALID_HANDLE_VALUE ) {
 				m_pSprite[DEF_SPRID_INTERFACE_ND_MAINMENU] = new class CSprite(m_hPakFile, &m_DDraw, "New-Dialog", 1, FALSE);
 				m_pSprite[DEF_SPRID_INTERFACE_ND_QUIT] = new class CSprite(m_hPakFile, &m_DDraw, "New-Dialog", 2, FALSE);
+				CloseHandle(m_hPakFile);
+			}
+
+
+			m_hPakFile = CreateFile("sprites\\questlist.pak", GENERIC_READ, NULL, NULL, OPEN_EXISTING, NULL, NULL);
+			if (m_hPakFile != INVALID_HANDLE_VALUE) {
+				m_pSprite[SPRID_QUESTLIST] = new class CSprite(m_hPakFile, &m_DDraw, "questlist", 0, FALSE);
+
 				CloseHandle(m_hPakFile);
 			}
 
@@ -4120,6 +4155,8 @@ BOOL CGame::_bCheckDlgBoxClick(short msX, short msY)
 			case 51:
 				DlgBoxClick_CMDHallMenu(msX, msY);
 				break;
+
+			case 52: click_questlist(msX, msY); break;
 			}
 
 			return TRUE;
@@ -15151,6 +15188,10 @@ void CGame::ChangeGameMode(char cMode)
 	m_cGameModeCount = 0;
 	m_dwTime = G_dwGlobalTime;
 
+	if( cMode == DEF_GAMEMODE_ONCONNECTIONLOST)
+	{
+		cMode = cMode;
+	}
 #ifndef DEF_SELECTSERVER
 	if( cMode == DEF_GAMEMODE_ONSELECTSERVER )
 	{	ZeroMemory(m_cWorldServerName, sizeof(m_cWorldServerName));
@@ -17223,6 +17264,7 @@ int CGame::_iCheckDlgBoxFocus(short msX, short msY, char cButtonSide)
 				case 67:
 				case 68:
 				case 69:
+				case 52:
 					m_stMCursor.cSelectedObjectType	= DEF_SELECTEDOBJTYPE_DLGBOX;
 					m_stMCursor.sSelectedObjectID   = cDlgID;
 					break;
@@ -17888,6 +17930,8 @@ void CGame::DrawDialogBoxs
 		case 51: // Gail
 			DrawDialogBox_CMDHallMenu(msX, msY);
 			break;
+
+		case 52: draw_questlist(msX, msY, msZ, cLB); break;
 		}
 	}
 
@@ -17956,6 +18000,12 @@ void CGame::EnableDialogBox(int iBoxID, int cType, int sV1, int sV2, char * pStr
 		}	}
 		break;
 
+	case 52:
+		if (m_bIsDialogEnabled[52] == FALSE) {
+			m_stDialogBoxInfo[52].cMode = cType;
+			m_stDialogBoxInfo[52].sView = 0;
+		}
+		break;
 	case 12: // levelup diag
 		if (m_bIsDialogEnabled[12] == FALSE)
 		{	m_stDialogBoxInfo[12].sX = m_stDialogBoxInfo[1].sX + 20;
@@ -21820,6 +21870,32 @@ void CGame::DlgBoxClick_CityhallMenu(short msX, short msY)
 	sX = m_stDialogBoxInfo[13].sX;
 	sY = m_stDialogBoxInfo[13].sY;
 	switch (m_stDialogBoxInfo[13].cMode) {
+	case 30:
+	{
+		auto no = (msX >= sX + 150) && (msX <= sX + 150 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22);
+		auto yes = (msX >= sX + 30) && (msX <= sX + 30 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22);
+
+		if (yes)
+		{
+			char data[64];
+			auto p = data;
+			Push(p, u32(MSG_REQUEST_CANCEL_QUEST));
+			Push(p, u16(0));
+			Push(p, bool(false));
+			m_pGSock->iSendMsg(data, p - data);
+			PlaySound('E', 14, 5);
+			DisableDialogBox(13);
+		}
+		else if (no)
+		{
+			PlaySound('E', 14, 5);
+			DisableDialogBox(13);
+		}
+
+		break;
+	}
+
+
 	case 0:
 		if ((msX > sX + 35) && (msX < sX + 220) && (msY > sY + 70) && (msY < sY + 95))
 		{	if (m_bCitizen == TRUE) return;
@@ -21837,9 +21913,27 @@ void CGame::DlgBoxClick_CityhallMenu(short msX, short msY)
 			PlaySound('E', 14, 5);
 		}
 		if ((msX > sX + 35) && (msX < sX + 220) && (msY > sY + 145) && (msY < sY + 170))
-		{	if (m_stQuest.sQuestType == NULL) return;
-			m_stDialogBoxInfo[13].cMode = 8;
-			PlaySound('E', 14, 5);
+		{	
+			if (_quest._id != kNullQuestID && !_quest.IsCompleted())
+			{
+				m_stDialogBoxInfo[13].cMode = 30;
+			}
+			else if (_quest.IsCompleted())
+			{
+				EnableDialogBox(52, NULL, NULL, NULL);
+				m_stDialogBoxInfo[52].cMode = 2;
+				DisableDialogBox(13);
+			}
+			else
+			{
+				//SendChat("/getquests");
+				EnableDialogBox(52, NULL, NULL, NULL);
+				DisableDialogBox(13);
+			}
+			PlaySound('E', 14, 5); 
+			//if (m_stQuest.sQuestType == NULL) return;
+			//m_stDialogBoxInfo[13].cMode = 8;
+			//PlaySound('E', 14, 5);
 		}
 		if ((msX > sX + 35) && (msX < sX + 220) && (msY > sY + 170) && (msY < sY + 195))
 		{	if (m_bIsCrusadeMode) return;
@@ -22162,9 +22256,26 @@ void CGame::DlgBoxClick_Character(short msX, short msY)
 	}*/
 
 	if ((msX >= sX + 15) && (msX <= sX + 15 + DEF_BTNSZX) && (msY >= sY + 340) && (msY <= sY + 340 + DEF_BTNSZY)) {
-		EnableDialogBox(28, 1, NULL, NULL);
-		DisableDialogBox(1);
-		PlaySound('E', 14, 5);
+		if (_quest._id != kNullQuestID)
+		{
+			QuestID idx = 0;
+			for (auto& quest : _side_quests)
+			{
+				if (quest->_id == _quest._id)
+				{
+					_selected_quest_idx = idx;
+					break;
+				}
+				++idx;
+			}
+
+			EnableDialogBox(52, 2, NULL, NULL);
+			DisableDialogBox(1);
+			PlaySound('E', 14, 5);
+		}
+
+		//EnableDialogBox(32, NULL, NULL, NULL);
+		//DisableDialogBox(1);
 	}
 	else if ((msX >= sX + 98) && (msX <= sX + 98 + DEF_BTNSZX) && (msY >= sY + 340) && (msY <= sY + 340 + DEF_BTNSZY)) {
 		EnableDialogBox(32, NULL, NULL, NULL);
@@ -28972,6 +29083,12 @@ NMH_LOOPBREAK2:;
 		m_iEnemyKillCount = *ip;
 		break;
 
+	case DEF_NOTIFY_CONTRIBUTION:
+		cp = (char*)(pData + DEF_INDEX2_MSGTYPE + 2);
+		ip = (int*)cp;
+		m_iContribution = *ip;
+		break;
+
 	case DEF_NOTIFY_DOWNSKILLINDEXSET:
 		NotifyMsg_DownSkillIndexSet(pData);
 		break;
@@ -32818,6 +32935,27 @@ void CGame::UpdateScreen_OnGame()
 		{	wsprintf( G_cTxt, "fps : %d", m_sFPS );
 			PutString( 10, 100, G_cTxt, RGB(255,255,255) );
 		}
+
+
+
+	if (_quest_helper && _quest._id != kNullQuestID)
+	{
+		auto x = IsNewRes() ? 800 : 600;
+
+		auto y = (IsNewRes() ? (600 / 2) : (480 / 2)) - 150;
+		//PutString2(x - 200, y, format("Quest:").data(), 184, 169, 54);
+		y += 15;
+
+		for (auto& mob : _quest._mobs)
+		{
+			char map_name[64] = {};
+			GetOfficialMapName(mob._map.data(), map_name);
+			PutString2(x - 125, y, format("{}", mob._name).data(), 255, 255, 0);
+			y += 15;
+			PutString2(x - 125, y, format("{} in {}", mob._count, map_name).data(), 55, 255, 255);
+			y += 15;
+		}
+	}
 		if( m_DDraw.iFlip() == DDERR_SURFACELOST ) RestoreSprites();		
 
 		// Couleurs 13 et 14 d'armes tournantes // m_Misc.ColorTransfer
@@ -35571,6 +35709,20 @@ void CGame::DrawDialogBox_CityHallMenu(short msX, short msY)
 	DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_TEXT, sX, sY, 18);//CityHall Menu Text
 
 	switch (m_stDialogBoxInfo[13].cMode) {
+	case 30:
+		PutAlignedString(sX, sX + szX, sY + 70, "Are you sure you want", 255, 255, 255);
+		PutAlignedString(sX, sX + szX, sY + 85, "to cancel the quest?", 255, 255, 255);
+
+
+		if ((msX >= sX + 30) && (msX <= sX + 30 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22))
+			DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 30, sY + 290, 19);
+		else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 30, sY + 290, 18);
+
+		if ((msX >= sX + 150) && (msX <= sX + 150 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22))
+			DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 150, sY + 290, 3);
+		else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 150, sY + 290, 2);
+		break;
+
 	case 0:
 		// citizenship req
 		if (m_bCitizen == FALSE)
@@ -35592,12 +35744,21 @@ void CGame::DrawDialogBox_CityHallMenu(short msX, short msY)
 			else PutAlignedString(sX, sX + szX, sY + 120, DRAW_DIALOGBOX_CITYHALL_MENU8, 4,0,50);
 		}else    PutAlignedString(sX, sX + szX, sY + 120, DRAW_DIALOGBOX_CITYHALL_MENU8, 65,65,65);
 
-		// Cancel quest
-		if (m_stQuest.sQuestType != NULL)
-		{	if ((msX > sX + 35) && (msX < sX + 220) && (msY > sY + 145) && (msY < sY + 170))
-				 PutAlignedString(sX, sX + szX, sY + 145, DRAW_DIALOGBOX_CITYHALL_MENU11, 255,255,255);//"
-			else PutAlignedString(sX, sX + szX, sY + 145, DRAW_DIALOGBOX_CITYHALL_MENU11, 4,0,50);//"
-		}else    PutAlignedString(sX, sX + szX, sY + 145, DRAW_DIALOGBOX_CITYHALL_MENU11, 65,65,65);//"
+		{
+			string text = "Take a quest";
+			if (_quest._id != kNullQuestID && !_quest.IsCompleted())
+			{
+				text = "Cancel the quest";
+			}
+			else if (_quest.IsCompleted())
+			{
+				text = "Claim the quest prize";
+			}
+			if ((msX > sX + 35) && (msX < sX + 220) && (msY > sY + 145) && (msY < sY + 170))
+				PutAlignedString(sX, sX + szX, sY + 145, text.data(), 255, 255, 255);	//"
+			else PutAlignedString(sX, sX + szX, sY + 145, text.data(), 4, 0, 50);		//"
+
+		}
 
 		// change playmode
 		if ( (m_bIsCrusadeMode==FALSE) && m_bCitizen && (m_iPKCount==0))
@@ -46099,3 +46260,439 @@ void CGame::DoCRC()
 
 
 
+
+
+void CGame::Notify_Quests(char* data)
+{
+	for (auto& quest : _quests)
+	{
+		for (auto& reward : quest._rewards)
+		{
+			if (reward._id == QuestRewardID::Item && reward._item)
+			{
+				delete reward._item;
+				reward._item = nullptr;
+			}
+		}
+	}
+
+	_quests.clear();
+	_side_quests.clear();
+
+	u16 total;
+	Pop(data, total);
+
+	while (total-- > 0)
+	{
+		QuestUnit quest;
+		Pop(data, quest._id);
+		Pop(data, quest._side);
+
+		u8 total_mobs;
+		Pop(data, total_mobs);
+		while (total_mobs-- > 0)
+		{
+
+			QuestMob mob;
+			Pop(data, mob._count);
+			Pop(data, mob._map);
+			Pop(data, mob._name);
+
+			quest._mobs.push_back(mob);
+		}
+
+		u8 total_rewards;
+		Pop(data, total_rewards);
+		while (total_rewards-- > 0)
+		{
+			QuestReward reward;
+			Pop(data, reward._count);
+			Pop(data, reward._id);
+			Pop(data, reward._item_attr);
+			Pop(data, reward._item_name);
+			Pop(data, reward._tm);
+
+			if (reward._id == QuestRewardID::Item)
+			{
+				reward._item = new CItem;
+				auto item = reward._item;
+				Pop(data, item->m_dwCount);
+				Pop(data, item->m_cItemType);
+				Pop(data, item->m_cEquipPos);
+				Pop(data, item->m_sLevelLimit);
+				Pop(data, item->m_cGenderLimit);
+				Pop(data, item->m_wCurLifeSpan);
+				Pop(data, item->m_wWeight);
+				Pop(data, item->m_sSprite);
+				Pop(data, item->m_sSpriteFrame);
+				Pop(data, item->m_cItemColor);
+				Pop(data, item->m_sItemSpecEffectValue2);
+				Pop(data, item->m_dwAttribute);
+				Pop(data, item->m_sItemSpecEffectValue3);
+				ZeroMemory(item->m_cName, sizeof(item->m_cName));
+				memcpy(item->m_cName, reward._item_name.c_str(), reward._item_name.size());
+				item->m_dwAttribute = reward._item_attr;
+			}
+
+			quest._rewards.push_back(reward);
+		}
+
+		_quests.push_back(quest);
+
+
+		auto side = DEF_ARESDEN;
+		if (!m_bCitizen)
+			side = DEF_NEUTRAL;
+		else if (!m_bAresden)
+			side = DEF_ELVINE;
+
+		if (quest._side == DEF_NEUTRAL || (quest._side != DEF_NEUTRAL && quest._side == side))
+		{
+			_side_quests.push_back(&_quests.back());
+		}
+	}
+}
+
+void CGame::Notify_QuestData(char* data)
+{
+	Pop(data, _quest._id);
+	if (_quest._id == kNullQuestID)
+	{
+		_quest = QuestHandler();
+		return;
+	}
+
+	_quest._mobs.clear();
+	u8 total;
+	Pop(data, total);
+	while (total-- > 0)
+	{
+		QuestHandler::Mob mob;
+		Pop(data, mob._count);
+		Pop(data, mob._map);
+		Pop(data, mob._name);
+		Pop(data, mob._total);
+		_quest._mobs.push_back(mob);
+	}
+}
+
+
+void CGame::draw_questlist(short msX, short msY, short msZ, char cLB)
+{
+	short sX, sY, sizeX, sizeY;
+	int dnumber = 52;
+	int maxlines = 16;
+	sX = m_stDialogBoxInfo[dnumber].sX;
+	sY = m_stDialogBoxInfo[dnumber].sY;
+	sizeX = m_stDialogBoxInfo[dnumber].sSizeX;
+	sizeY = m_stDialogBoxInfo[dnumber].sSizeY;
+	auto mode = m_stDialogBoxInfo[dnumber].cMode;
+
+	DrawNewDialogBox(SPRID_QUESTLIST, sX, sY, 0); 
+	//DrawShadowMenu(sX + 17, sY + 32, sX + sizeX - 18, sY + 50);
+		
+	switch (mode)
+	{
+	case 0:
+	{
+		//PutString2(sX + 23, sY + 33, "Quest list", 228, 161, 6);
+		PutString2(sX + 23, sY + 40, "Quest list", 228, 161, 6);
+		//PutString2(sX + 110, sY + 55, "Kills", 228, 161, 6);
+		//PutString2(sX + 160, sY + 55, "Map", 228, 161, 6);
+		//PutString2(sX + 220, sY + 55, "Reward", 228, 161, 6);
+
+		int iTotalLines, iPointerLoc;
+		double d1, d2, d3;
+
+		iTotalLines = _side_quests.size();
+		/*for (int i = 0; i < vec_questlist.size(); i++)
+		{
+			iTotalLines++;
+		}*/
+
+		if (iTotalLines > maxlines) DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME2, sX+100, sY, 3);
+		if (iGetTopDialogBoxIndex() == dnumber && msZ != 0)
+		{
+			m_stDialogBoxInfo[dnumber].sView = m_stDialogBoxInfo[dnumber].sView - msZ / 60;
+			m_DInput.m_sZ = 0;
+		}
+		if (m_stDialogBoxInfo[dnumber].sView < 0) m_stDialogBoxInfo[dnumber].sView = 0;
+		if (iTotalLines > maxlines && m_stDialogBoxInfo[dnumber].sView > iTotalLines - maxlines) m_stDialogBoxInfo[dnumber].sView = iTotalLines - maxlines;
+
+		if (iTotalLines > maxlines) {
+			d1 = (double)m_stDialogBoxInfo[dnumber].sView;
+			d2 = (double)(iTotalLines - maxlines);
+			d3 = (274.0f * d1) / d2;
+			iPointerLoc = (int)(d3 + 0.5);
+			DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME2, sX + 100, sY, 3);
+			DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME2, sX + 242 + 100, sY + 35 + iPointerLoc, 7);
+		}
+		else iPointerLoc = 0;
+
+		int i_pos = 0;
+		for (int i = 0; i < maxlines; i++)
+			if (i + m_stDialogBoxInfo[dnumber].sView < iTotalLines) 
+			{
+				auto & quest = *_side_quests[i + m_stDialogBoxInfo[dnumber].sView];
+				int y = sY + 55 + (15 * i);
+				
+				/*int r = 228;
+				int g = 161;
+				int b = 6;*/
+				
+					auto r = 255;
+					auto g = 255;
+					auto b = 255;
+				if ((msX > sX + 20) && (msX < sX + 327) && (msY > y) && (msY < y + 15))
+				{
+
+				}
+				else
+				{
+					r = 4;
+					g = 0;
+					b = 50;
+				}
+
+				PutString(sX + 23, y, format("Defeat {} npcs to claim 1 of {} rewards", quest._mobs.size(), quest._rewards.size()).data(), RGB(r, g, b));
+			}
+
+		if (cLB != 0 && iTotalLines > maxlines) {
+			if ((iGetTopDialogBoxIndex() == dnumber)) {
+				if ((msX >= sX + 334) && (msX <= sX + 346) && (msY >= sY + 40) && (msY <= sY + 320)) {
+					d1 = (double)(msY - (sY + 35));
+					d2 = (double)(iTotalLines - maxlines);
+					d3 = (d1 * d2) / 274.0f;
+					iPointerLoc = (int)d3;
+					if (iPointerLoc > iTotalLines - maxlines) iPointerLoc = iTotalLines - maxlines;
+					m_stDialogBoxInfo[dnumber].sView = iPointerLoc;
+				}
+			}
+		}
+		else m_stDialogBoxInfo[dnumber].bIsScrollSelected = FALSE;
+		
+		break;
+	}
+
+	case 2:
+	case 1:
+	{
+		//PutString2(sX + 23, sY + 30, "Take a quest", 228, 161, 6);
+		auto & quest = *_side_quests[_selected_quest_idx];
+
+		DrawMenu_QuestInfo(quest, dnumber, msX, msY, msZ);
+
+		if(mode != 2)
+		{
+			PutAlignedString(sX, sX + sizeX, sY + 245, "Choose this quest?", 255, 255, 255);
+
+			if ((msX >= sX + 30) && (msX <= sX + 30 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22))
+				DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 30, sY + 290, 19);
+			else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 30, sY + 290, 18);
+
+			if ((msX >= sX + 246) && (msX <= sX + 246 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22))
+				DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 246, sY + 290, 3);
+			else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 246, sY + 290, 2);
+		}
+		break;
+	}
+
+	default:
+		break;
+	}
+
+	//DrawDialogCord(sX, sY, msX, msY);
+}
+
+void CGame::DrawMenu_QuestInfo(QuestUnit & quest, int dlg_idx, short msX, short msY, short msZ)
+{
+	auto sX = m_stDialogBoxInfo[dlg_idx].sX;
+	auto sY = m_stDialogBoxInfo[dlg_idx].sY;
+	auto sizeX = m_stDialogBoxInfo[dlg_idx].sSizeX;
+	auto sizeY = m_stDialogBoxInfo[dlg_idx].sSizeY;
+	//checkpoint
+	int y = 55;
+	PutString2(sX + 100, sY + y, "Defeat:", 255, 255, 0);
+	y += 15;
+	for(auto mob : quest._mobs)
+	{
+		PutString2(sX + 100, sY + y, format("- {} {} in {}", mob._count, mob._name, mob._map).data(), 55, 255, 255);
+		y += 15;
+	}
+
+	y += 20;
+	PutString2_Aligned(sX, sX + sizeX, sY + y, "Choose one of these reward:", 255, 255, 0);
+	y += 15;
+
+	_quest_draw_y = y;
+	for(auto reward : quest._rewards)
+	{
+		auto r = 4;
+		auto g = 0;
+		auto b = 50;
+
+		if ((msX > sX + 20) && (msX < sX + 327) && (msY > sY + y) && (msY < sY + y + 15))
+		{	
+			r = 255;
+			g = 255;
+			b = 255;
+		}
+		if(reward._id == QuestRewardID::Item)
+		{
+			// #quest_todo
+			PutAlignedString(sX, sX + sizeX, sY + y, format("Item: {}", reward._item_name).data(), r, g, b);
+
+			if ((msX > sX + 20) && (msX < sX + 327) && (msY > sY + y) && (msY < sY + y + 15))
+			{
+				//DrawItemInfo(reward._item, msX + 15, msY + 15); 
+			}
+		}
+		else if(reward._id == QuestRewardID::Gold)
+		{
+			PutAlignedString(sX, sX + sizeX, sY + y, format("Gold: {}", reward._count).data(), r, g, b);
+		}
+		else if(reward._id == QuestRewardID::Experience)
+		{
+			PutAlignedString(sX, sX + sizeX, sY + y, format("Experience: {}", reward._count).data(), r, g, b);
+		}
+		else if(reward._id == QuestRewardID::Contribution)
+		{
+			PutAlignedString(sX, sX + sizeX, sY + y, format("Contribution: {}", reward._count).data(), r, g, b);
+		}
+
+		y += 15;
+	}
+}
+
+
+void CGame::click_questlist(short msX, short msY)
+{
+	short sX, sY, sizeX;
+	int dnumber = 52;
+	int maxlines = 16;
+	sX = m_stDialogBoxInfo[dnumber].sX;
+	sY = m_stDialogBoxInfo[dnumber].sY;
+	sizeX = m_stDialogBoxInfo[dnumber].sSizeX;
+	auto mode = m_stDialogBoxInfo[dnumber].cMode;
+
+	switch (mode)
+	{
+	case 0:
+	{
+		int cnt = _side_quests.size();
+
+		for (int i = 0; i < maxlines; i++)
+		{
+			if (i + m_stDialogBoxInfo[dnumber].sView < cnt)
+			{
+				auto & quest = *_side_quests[i + m_stDialogBoxInfo[dnumber].sView];
+				int y = sY + 55 + (15 * i);
+				if ((msX > sX + 20) && (msX < sX + 327) && (msY > y) && (msY < y + 15))
+				{
+					_selected_quest_idx = i + m_stDialogBoxInfo[dnumber].sView;
+					m_stDialogBoxInfo[dnumber].cMode = 1;
+					PlaySound('E', 14, 5);
+					for(auto & reward : quest._rewards)
+					{
+						if(reward._id != QuestRewardID::Item)
+							continue;
+
+						//UpdateExpireTime(reward);
+					}
+				}
+			}
+		}
+		break;
+	}
+
+	case 1:
+	{		
+		auto & quest = *_side_quests[_selected_quest_idx];
+
+		auto cancel = (msX >= sX + 246) && (msX <= sX + 321) && (msY >= sY + 290) && (msY <= sY + 311);
+		auto accept = (msX >= sX + 30) && (msX <= sX + 105) && (msY >= sY + 290) && (msY <= sY + 311);
+	
+		if (cancel)
+		{
+			m_stDialogBoxInfo[dnumber].cMode = 0;
+			PlaySound('E', 14, 5);
+		}
+
+		if (accept)
+		{
+			char data[256];
+			auto * cp = data;
+
+			Push(cp, (u32)MSG_REQUEST_BEGIN_QUEST);
+			Push(cp, (u16)0);
+
+			Push(cp, bool(true));
+			Push(cp, quest._id);
+			m_pGSock->iSendMsg(data, cp - data);
+
+			PlaySound('E', 14, 5);
+			DisableDialogBox(52);
+		}
+		break;
+	}
+		default:break;
+
+	case 2:
+	{
+		if(!_quest.IsCompleted())
+			break;
+
+		QuestUnit * quest = nullptr;
+		for(int i = 0; i < _quests.size(); i++)
+		{
+			if(_quests[i]._id == _quest._id)
+			{
+				quest = &_quests[i];
+				break;
+			}
+		}
+
+		if(!quest)
+			return;
+
+		auto y = _quest_draw_y;
+		for(int i = 0; i < quest->_rewards.size(); i++)
+		{
+			if ((msX > sX + 20) && (msX < sX + 327) && (msY > sY + y) && (msY < sY + y + 15))
+			{
+				char data[64] = {};
+				auto p = data;
+				Push(p, u32(MSG_REQUEST_QUEST_REWARD));
+				Push(p, u16(0));
+				Push(p, i);
+				m_pGSock->iSendMsg(data, p - data);
+				PlaySound('E', 14, 5);
+				DisableDialogBox(52);
+			}
+
+			y += 15;
+		}
+		break;
+	}
+	}
+}
+
+
+void CGame::PutString2_Aligned(int iX1, int iX2, int iY, const char* pString, short sR, short sG, short sB)
+{
+	RECT rt;
+	m_DDraw._GetBackBufferDC();
+
+	SetRect(&rt, iX1 + 1, iY, iX2, iY + 15);
+	m_DDraw.DrawText(&rt, (char*)pString, RGB(0, 0, 0));
+
+	SetRect(&rt, iX1, iY + 1, iX2, iY + 15);
+	m_DDraw.DrawText(&rt, (char*)pString, RGB(0, 0, 0));
+
+	SetRect(&rt, iX1 + 1, iY + 1, iX2, iY + 15);
+	m_DDraw.DrawText(&rt, (char*)pString, RGB(0, 0, 0));
+
+	SetRect(&rt, iX1, iY, iX2, iY + 15);
+	m_DDraw.DrawText(&rt, (char*)pString, RGB(sR, sG, sB));
+	m_DDraw._ReleaseBackBufferDC();
+}

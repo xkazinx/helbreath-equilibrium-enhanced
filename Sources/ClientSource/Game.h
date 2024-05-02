@@ -47,6 +47,7 @@
 #include "MapData.h"
 #include "ActionID.h"
 #include "NetMessages.h"
+#include <common.h>
 #include "MouseInterface.h"
 #include "CharInfo.h"
 #include "Item.h"
@@ -158,6 +159,14 @@ using std::format;
 class CGame
 {
 public:
+	bool _quest_helper = true;
+	vector<QuestUnit> _quests;
+	vector<QuestUnit*> _side_quests;
+
+	u32 _selected_quest_idx;
+	QuestHandler _quest;
+	int _quest_draw_y;
+
 	bool _new_camera = true;
 	bool _new_speed = false;
 	bool _skip_frames = true;
@@ -585,6 +594,12 @@ public:
 #ifdef DEF_ANTI_HACK
 	bool CheckProcesses();
 	void DoCRC();
+	void Notify_Quests(char* data);
+	void Notify_QuestData(char* data);
+	void draw_questlist(short msX, short msY, short msZ, char cLB);
+	void click_questlist(short msX, short msY);
+	void DrawMenu_QuestInfo(QuestUnit& quest, int dlg_idx, short msX, short msY, short msZ);
+	void PutString2_Aligned(int iX1, int iX2, int iY, const char* pString, short sR = 0, short sG = 0, short sB = 0);
 #endif
 	//Snoopy: added function:
 	void DebugLog(char * cStr);

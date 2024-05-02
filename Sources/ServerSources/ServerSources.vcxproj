@@ -73,10 +73,18 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)..\Server\GameServers\all\</OutDir>
     <TargetName>HGserver</TargetName>
+    <IncludePath>$(SolutionDir)Shared;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)..\Server\GameServers\all\</OutDir>
     <TargetName>HGserver</TargetName>
+    <IncludePath>$(SolutionDir)Shared;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(SolutionDir)Shared;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(SolutionDir)Shared;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -165,6 +173,7 @@
     <ClInclude Include="Player.h" />
     <ClInclude Include="Portion.h" />
     <ClInclude Include="Quest.h" />
+    <ClInclude Include="QuestMgr.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="Skill.h" />
     <ClInclude Include="SkillNum.h" />
@@ -181,6 +190,7 @@
     <ClInclude Include="XSocket.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\Shared\common.cpp" />
     <ClCompile Include="BuildItem.cpp" />
     <ClCompile Include="Client.cpp" />
     <ClCompile Include="DebugDialog.cpp" />
@@ -200,6 +210,7 @@
     <ClCompile Include="OccupyFlag.cpp" />
     <ClCompile Include="Portion.cpp" />
     <ClCompile Include="Quest.cpp" />
+    <ClCompile Include="QuestMgr.cpp" />
     <ClCompile Include="Skill.cpp" />
     <ClCompile Include="StrategicPoint.cpp" />
     <ClCompile Include="StrTok.cpp" />

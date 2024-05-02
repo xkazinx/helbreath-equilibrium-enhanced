@@ -24,5 +24,7 @@ account-created-by =
 
 
 [CHARACTERS]
+account-character-snoopy81  = dsa
+account-character-snoopy81  = asd
 account-character-snoopy81  = Gem[GM]
 

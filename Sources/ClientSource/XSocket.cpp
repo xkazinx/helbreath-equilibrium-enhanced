@@ -77,7 +77,8 @@ int XSocket::iOnSocketEvent(WPARAM wParam, LPARAM lParam)
 
 	switch (WSAEvent) {
 	case FD_CONNECT:
-		if (WSAGETSELECTERROR(lParam) != 0) { 
+		if (auto err = (WSAGETSELECTERROR(lParam) != 0)) { 
+
 			if (bConnect(m_pAddr, m_iPortNum, m_uiMsg) == FALSE) return DEF_XSOCKEVENT_SOCKETERROR;
 				
 			return DEF_XSOCKEVENT_RETRYINGCONNECTION;

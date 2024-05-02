@@ -32,6 +32,7 @@
 #include "ActionID.h"
 #include "UserMessages.h"
 #include "NetMessages.h"
+#include <common.h>
 #include "MessageIndex.h"
 #include "Misc.h"
 #include "Msg.h"
@@ -51,6 +52,14 @@
 #include "TempNpcItem.h"
 #include <format>
 using std::format;
+
+class QuestMgr;
+namespace Global
+{
+	extern unique_ptr<QuestMgr> g_quests;
+}
+
+using namespace Global;
 
 #define DEF_MAXADMINS				50
 #define DEF_MAXMAPS					100
@@ -860,6 +869,8 @@ public:
 
 	void CreateAvatarStructures();
 	void RemoveAvatarStructures ();
+
+	void RequestChangeQuestStatus(int iClientH, char* data);
 
 
 

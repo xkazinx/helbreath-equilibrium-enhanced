@@ -21,6 +21,13 @@ extern void PutPvPLogFileList(char * cStr);
 extern void PutPartyLogFileList(char * cStr);
 extern void PutSkillLogFileList(char * cStr);
 
+#include "QuestMgr.h"
+
+namespace Global
+{
+	unique_ptr<QuestMgr> g_quests;
+}
+
 /* // Information above all Logs
 PutLogFileList(G_cTxt);		   // GameLogs\Events.log			Log mics events
 PutAdminLogFileList(G_cTxt);   // GameLogs\AdminEvents.log		Log Admins orders
@@ -341,6 +348,7 @@ BOOL CGame::bAccept(class XSocket * pXSock)
 	for (i = 1; i < DEF_MAXCLIENTS; i++)
 	if (m_pClientList[i] == NULL) {		
 		m_pClientList[i] = new class CClient(m_hWnd);
+		m_pClientList[i]->_handle = i;
 		bAddClientShortCut(i);
 		m_pClientList[i]->m_dwSPTime		= m_pClientList[i]->m_dwMPTime = 
 		m_pClientList[i]->m_dwHPTime		= m_pClientList[i]->m_dwAutoSaveTime = 
@@ -1188,6 +1196,8 @@ int CGame::iClientMotion_Move_Handler(int iClientH, short sX, short sY, char cDi
 				}
 			}
 		}
+
+		return 0;
 	};
 	if (m_pClientList[iClientH] == NULL) return 0;
 	if ((cDir <= 0) || (cDir > 8))       return 0;
@@ -2119,6 +2129,10 @@ void CGame::RequestInitDataHandler(int iClientH, char * pData, char cKey)
 			, m_pClientList[iClientH]->m_iTimeLeft_ForceRecall/20) ;
 		PutLogList(G_cTxt) ;
 	}
+
+
+	g_quests->Send(m_pClientList[iClientH]);
+	g_quests->SendQuestData(m_pClientList[iClientH]);
 }
 
 int CGame::iComposeInitMapData(short sX, short sY, int iClientH, char * pData)
@@ -8066,9 +8080,69 @@ BOOL CGame::_bDecodePlayerDatafileContents(int iClientH, char * pData, DWORD dwS
 				m_pClientList[iClientH]->m_dwAvatarGUID = atoi(token);
 				cReadModeA = 0;
 				break;
+
+			case 86:
+			{
+				int client = iClientH;
+				/*if (_bGetIsStringIsNumber(token) == FALSE) {
+					wsprintf(cTxt, "(!!!) Player(%s) data file error! wrong Data format - Connection closed. ", m_pClientList[client]->m_cCharName);
+					PutLogList(cTxt);
+					delete pContents;
+					delete pStrTok;
+					return FALSE;
+				}*/
+				std::istringstream in(token);
+				string str;
+				int idx = 0;
+				QuestUnit * quest = nullptr;
+				while(getline(in, str, ','))
+				{
+					switch(idx)
+					{
+					case 0:
+						m_pClientList[client]->_quest._id = (QuestID)std::stoi(str);
+						if(quest = g_quests->At(m_pClientList[client]->_quest._id).get())
+						{
+
+						}
+						else
+						{
+							m_pClientList[client]->_quest = QuestHandler();
+						}
+						break;
+
+					case 1:
+						if(!quest)
+							break;
+
+						m_pClientList[client]->_quest._mobs.resize(std::stoi(str));
+						for(int i = 0; i < quest->_mobs.size(); i++)
+						{
+							m_pClientList[client]->_quest._mobs[i]._map = quest->_mobs[i]._map;
+							m_pClientList[client]->_quest._mobs[i]._total = quest->_mobs[i]._count;
+							m_pClientList[client]->_quest._mobs[i]._name = quest->_mobs[i]._name;
+						}
+						break;
+
+					default:
+						if(!quest)
+							break;
+
+						m_pClientList[client]->_quest._mobs[idx - 2]._count = std::stoi(str); 
+						break;
+					}
+
+					++idx;
+				}
+				cReadModeA = 0;
+				break;
+			}
 			}
 		}else 
-		{	if (memcmp(token, "character-loc-map", 17) == 0)		 cReadModeA = 1;
+		{	
+
+			if (memcmp(token, "quest-id", 8) == 0)    cReadModeA = 86;
+			if (memcmp(token, "character-loc-map", 17) == 0)		 cReadModeA = 1;
 			if (memcmp(token, "character-loc-x", 15) == 0)			 cReadModeA = 2;
 			if (memcmp(token, "character-loc-y", 15) == 0)			 cReadModeA = 3;
 			if (memcmp(token, "character-account-status", 21) == 0)  cReadModeA = 4;
@@ -8811,7 +8885,18 @@ int CGame::_iComposePlayerDataFileContents(int iClientH, char * pData)
 		wsprintf(cTxt, "%d ", m_pClientList[iClientH]->m_iSkillSSN[i]);
 		strcat(pData, cTxt);
 	}
-	strcat(pData,"\n\n");	
+
+
+	strcat(pData, "\n");
+
+	strcat(pData, format("quest-id = {},{},", m_pClientList[iClientH]->_quest._id, m_pClientList[iClientH]->_quest._mobs.size()).c_str());
+	for (auto& mob : m_pClientList[iClientH]->_quest._mobs)
+		strcat(pData, format("{},", mob._count).c_str());
+
+	pData[strlen(pData) - 1] = ' ';
+
+	strcat(pData, "\n\n");
+
 	strcat(pData, "[ITEM-EQUIP-STATUS]\n");
 	strcat(pData, "item-equip-status = ");	
 	ZeroMemory(cTxt, sizeof(cTxt));
@@ -10058,6 +10143,24 @@ void CGame::ChatMsgHandler(int iClientH, char * pData, DWORD dwMsgSize)
 		{	AdminOrder_SetObserverMode(iClientH);
 			return;
 		}
+		if (strcmp(cp, "/finishquest") == 0 && m_pClientList[iClientH]->m_iAdminUserLevel >= 1) {
+			
+			{
+				auto player = m_pClientList[iClientH];
+				if (!player)
+					return;
+
+				if (player->_quest._id == kNullQuestID)
+					return;
+
+				for (auto& mob : player->_quest._mobs)
+					mob._count = 0;
+
+				g_quests->SendQuestData(player);
+			}
+			return;
+		}
+
 		if (memcmp(cp, "/shutup ", 8) == 0) 				// m_iAdminLevelShutup
 		{	ShutUpPlayer(iClientH, cp, dwMsgSize - 21);
 			return;
@@ -12130,7 +12233,35 @@ void CGame::NpcKilledHandler(short sAttackerH, char cAttackerType, int iNpcH, sh
 	if (   (cAttackerType == DEF_OWNERTYPE_PLAYER)
 		&& (m_pClientList[sAttackerH] != NULL)  // Snoopy: Added normal XP for killing ennemy summons
 		&& ((m_pNpcList[iNpcH]->m_bIsSummoned != TRUE) || ((m_pClientList[sAttackerH]->m_cSide != m_pNpcList[iNpcH]->m_cSide))) )		 
-	{	iExp = (m_pNpcList[iNpcH]->m_iExp/3);
+	{	
+		auto player = m_pClientList[sAttackerH];
+		auto npc = m_pNpcList[iNpcH];
+
+		if (player->_quest._id != kNullQuestID && !player->_quest.IsCompleted())
+		{
+			bool update = false;
+			for (auto& mob : player->_quest._mobs)
+			{
+				if (m_pMapList[player->m_cMapIndex]->m_cName != mob._map)
+					continue;
+
+				if (npc->m_cNpcName != mob._name)
+					continue;
+
+				if (mob._count > 0)
+				{
+					update = true;
+					mob._count--;
+				}
+			}
+
+			if (update)
+			{
+				g_quests->SendQuestData(player);
+			}
+		}
+
+		iExp = (m_pNpcList[iNpcH]->m_iExp/3);
 		if (m_pNpcList[iNpcH]->m_iNoDieRemainExp > 0)
 			iExp += m_pNpcList[iNpcH]->m_iNoDieRemainExp;
 		// SNOOPY: Now Adding weapon bonus XP (20%) added after party bonus
@@ -12629,6 +12760,16 @@ OUTDATED_PROUVED:
 			}
 			switch (*dwpMsgID) { // 84148741
 						
+			case MSG_REQUEST_BEGIN_QUEST:
+			case MSG_REQUEST_CANCEL_QUEST:
+				RequestChangeQuestStatus(iClientH, pData + 6);
+				break;
+
+			case MSG_REQUEST_QUEST_REWARD:
+				g_quests->Reward(m_pClientList[iClientH], pData + 6);
+				break;
+
+
 			case MSGID_REQUEST_RESURRECTPLAYER_YES:
 				m_pClientList[iClientH]->m_cMsgCount[1] +=1;
 				RequestResurrectPlayer(iClientH, TRUE);
@@ -12939,6 +13080,8 @@ OUTDATED_PROUVED:
 				//DbgWnd->AddEventMsg("RECV -> DEF_MSGFROM_LOGSERVER -> MSGID_ITEMCONFIGURATIONCONTENTS");
 				PutLogList("(!) ITEM configuration contents received. Now decoding...");
 				m_bIsItemAvailable = _bDecodeItemConfigFileContents((char *)(pData + DEF_INDEX2_MSGTYPE + 2), dwMsgSize);
+
+
 				break;
 
 			case MSGID_NPCCONFIGURATIONCONTENTS:
@@ -15544,7 +15687,8 @@ void CGame::SendNotifyMsg(int iFromH, int iToH, WORD wMsgType, DWORD sV1, DWORD 
 		}
 		iRet = m_pClientList[iToH]->m_pXSock->iSendMsg(cData, 6 + DEF_MAXITEMS*4);
 		break;
-	
+
+	case DEF_NOTIFY_CONTRIBUTION:
 	case DEF_NOTIFY_ENEMYKILLS:
 		ip  = (int *)cp;
 		*ip = (int)sV1;
@@ -53615,6 +53759,10 @@ void CGame::OnStartGameSignal()
 	bReadApocalypseGUIDFile("GameData\\ApocalypseGUID.txt");
 	bReadHeldenianGUIDFile("GameData\\HeldenianGUID.txt");	
 	bReadAvatarGUIDFile("GameData\\AvatarGUID.txt");
+	g_quests = make_unique<QuestMgr>();
+	/*m_bIsQuestAvailable = */g_quests->Read("..\\GameConfigs\\Quests.csv");
+	//m_bIsQuestAvailable = _bDecodeQuestConfigFileContents("Config\\Quest.cfg", 0);
+
 	PutLogList("");
 	PutLogList("(!) Game Server Activated.");
 }
@@ -67681,3 +67829,44 @@ void CGame::RemoveAvatarStructures ()
 */
 
 
+
+void CGame::RequestChangeQuestStatus(int iClientH, char* data)
+{
+	auto player = m_pClientList[iClientH];
+	if (!player)
+		return;
+
+	bool take_quest;
+	Pop(data, take_quest);
+
+	if (take_quest)
+	{
+		QuestID quest_id;
+		Pop(data, quest_id);
+
+		if (quest_id > kMaxQuests)
+			return;
+
+		auto& quest = g_quests->At(quest_id);
+		if (!quest)
+			return;
+
+		if (quest->_side != 0 && quest->_side != player->m_cSide)
+			return;
+
+		player->_quest._id = quest->_id;
+		for (auto mob : quest->_mobs)
+		{
+			player->_quest._mobs.push_back(QuestHandler::Mob{ mob._name, mob._map, mob._count, mob._count });
+		}
+
+		auto& handler = player->_quest;
+
+	}
+	else
+	{
+		player->_quest = QuestHandler();
+	}
+
+	g_quests->SendQuestData(player);
+}

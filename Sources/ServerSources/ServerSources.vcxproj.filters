@@ -129,6 +129,9 @@
     <ClInclude Include="XSocket.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="QuestMgr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BuildItem.cpp">
@@ -216,6 +219,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="XSocket.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\common.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="QuestMgr.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
