@@ -562,5 +562,8 @@
 #define MSG_REQUEST_QUEST_REWARD	153
 #define MSG_QUEST_DATA	154
 
+#define MSG_TRADE_DATA	155
+#define MSG_TRADE_SELECT	156
+
 
 #define DEF_NOTIFY_CONTRIBUTION                     0x0B6A

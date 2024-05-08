@@ -6,7 +6,10 @@
 #include <fstream>
 #include <string>
 class CDebugWindow *DbgWnd;
-
+#include <sstream>
+#include <fstream>
+using std::stringstream;
+using std::ifstream;
 extern void PutLogList(char * cMsg);
 //extern char G_cTxt[512];
 extern char G_cTxt[1024];
@@ -2133,6 +2136,8 @@ void CGame::RequestInitDataHandler(int iClientH, char * pData, char cKey)
 
 	g_quests->Send(m_pClientList[iClientH]);
 	g_quests->SendQuestData(m_pClientList[iClientH]);
+
+	SendTradeData(m_pClientList[iClientH]);
 }
 
 int CGame::iComposeInitMapData(short sX, short sY, int iClientH, char * pData)
@@ -12763,6 +12768,10 @@ OUTDATED_PROUVED:
 			case MSG_REQUEST_BEGIN_QUEST:
 			case MSG_REQUEST_CANCEL_QUEST:
 				RequestChangeQuestStatus(iClientH, pData + 6);
+				break;
+
+			case MSG_TRADE_SELECT:
+				RequestTradeItem(iClientH, pData + 6);
 				break;
 
 			case MSG_REQUEST_QUEST_REWARD:
@@ -53761,6 +53770,7 @@ void CGame::OnStartGameSignal()
 	bReadAvatarGUIDFile("GameData\\AvatarGUID.txt");
 	g_quests = make_unique<QuestMgr>();
 	/*m_bIsQuestAvailable = */g_quests->Read("..\\GameConfigs\\Quests.csv");
+	ReadTrades("..\\GameConfigs\\Trades.csv");
 	//m_bIsQuestAvailable = _bDecodeQuestConfigFileContents("Config\\Quest.cfg", 0);
 
 	PutLogList("");
@@ -67869,4 +67879,280 @@ void CGame::RequestChangeQuestStatus(int iClientH, char* data)
 	}
 
 	g_quests->SendQuestData(player);
+}
+
+
+void CGame::SendTradeData(CClient* player)
+{
+	if (!player)
+		return;
+
+	char data[1024 * 3];
+	auto p = data;
+
+	Push(p, u32(MSG_TRADE_DATA));
+	Push(p, u16(0));
+	Push(p, u32(_trades.size()));
+
+	for(auto &trade : _trades)
+	{
+		Push(p, trade._id);
+		Push(p, trade._item_name);
+		Push(p, trade._eks);
+		Push(p, trade._contrib);
+		Push(p, trade._majs);
+	}
+
+	player->m_pXSock->iSendMsg(data, p - data);
+}
+
+
+void CGame::RequestTradeItem(int iClientH, char* data)
+{
+	auto player = m_pClientList[iClientH];
+	if (!player)
+		return;
+
+	if (_iGetItemSpaceLeft(iClientH) == 0) {
+		SendItemNotifyMsg(iClientH, DEF_NOTIFY_CANNOTCARRYMOREITEM, NULL, NULL);
+		return;
+	}
+
+	int id;
+	Pop(data, id);
+
+	TradeItemUnit * trade = nullptr;
+
+	for(auto & unit : _trades)
+	{
+		if(unit._id == id)
+		{
+			trade = &unit;
+			break;
+		}
+	}
+
+	if(!trade)
+		return;
+
+	if(trade->_eks > player->m_iEnemyKillCount ||
+		trade->_contrib > player->m_iContribution ||
+		trade->_majs > player->m_iGizonItemUpgradeLeft)
+	{
+		return;
+	}
+	
+	int iEraseReq = 0;
+	char cData[112];
+	{ 
+		auto pItem = new class CItem; 
+     if (_bInitItemAttr(pItem, trade->_item_name.data()) == FALSE)
+     {   delete pItem; 
+     }else 
+	 {	if (_bAddClientItemList(iClientH, pItem, &iEraseReq) == TRUE) 
+		{  if (m_pClientList[iClientH]->m_iCurWeightLoad < 0) 
+		  m_pClientList[iClientH]->m_iCurWeightLoad = 0;             
+           auto dwp  = (DWORD *)(cData + DEF_INDEX4_MSGID); 
+           *dwp = MSGID_NOTIFY; 
+           auto wp   = (WORD *)(cData + DEF_INDEX2_MSGTYPE); 
+           *wp  = DEF_NOTIFY_ITEMOBTAINED; 
+           auto cp = (char *)(cData + DEF_INDEX2_MSGTYPE + 2); 
+           *cp = 1; 
+           cp++;             
+           memcpy(cp, pItem->m_cName, 20); 
+           cp += 20;             
+           dwp  = (DWORD *)cp; 
+           *dwp = pItem->m_dwCount; 
+           cp += 4;             
+           *cp = pItem->m_cItemType; 
+           cp++;             
+           *cp = pItem->m_cEquipPos; 
+           cp++;             
+           *cp = (char)0;
+           cp++;             
+           auto sp  = (short *)cp; 
+           *sp = pItem->m_sLevelLimit; 
+           cp += 2;             
+           *cp = pItem->m_cGenderLimit; 
+           cp++;             
+           wp = (WORD *)cp; 
+           *wp = pItem->m_wCurLifeSpan; 
+           cp += 2;             
+           wp = (WORD *)cp; 
+           *wp = pItem->m_wWeight; 
+           cp += 2;             
+           sp  = (short *)cp; 
+           *sp = pItem->m_sSprite; 
+           cp += 2;             
+           sp  = (short *)cp; 
+           *sp = pItem->m_sSpriteFrame; 
+           cp += 2; 
+           *cp = pItem->m_cItemColor; 
+           cp++; 
+           *cp = (char)pItem->m_sItemSpecEffectValue2; // v1.41 
+           cp++;             
+           dwp = (DWORD *)cp; 
+           *dwp = pItem->m_dwAttribute; 
+           cp += 4; 
+           /* 
+           *cp = (char)(pItem->m_dwAttribute & 0x00000001); // Custom-Item??? ?? 
+           cp++; 
+           */                                  
+           if (iEraseReq == 1) delete pItem;             
+           auto iRet = m_pClientList[iClientH]->m_pXSock->iSendMsg(cData, 53);             
+           iCalcTotalWeight(iClientH);             
+           switch (iRet) { 
+           case DEF_XSOCKEVENT_QUENEFULL: 
+           case DEF_XSOCKEVENT_SOCKETERROR: 
+           case DEF_XSOCKEVENT_CRITICALERROR: 
+           case DEF_XSOCKEVENT_SOCKETCLOSED: 
+              DeleteClient(iClientH, TRUE, TRUE); 
+              return; 
+           } 
+        }else 
+        {  delete pItem; 
+           iCalcTotalWeight(iClientH); 
+           auto dwp  = (DWORD *)(cData + DEF_INDEX4_MSGID); 
+           *dwp = MSGID_NOTIFY; 
+           auto wp   = (WORD *)(cData + DEF_INDEX2_MSGTYPE); 
+           *wp  = DEF_NOTIFY_CANNOTCARRYMOREITEM;             
+           auto iRet = m_pClientList[iClientH]->m_pXSock->iSendMsg(cData, 6); 
+           switch (iRet) { 
+           case DEF_XSOCKEVENT_QUENEFULL: 
+           case DEF_XSOCKEVENT_SOCKETERROR: 
+           case DEF_XSOCKEVENT_CRITICALERROR: 
+           case DEF_XSOCKEVENT_SOCKETCLOSED: 
+              DeleteClient(iClientH, TRUE, TRUE); 
+              return; 
+           } 
+        } 
+     } 
+   }
+
+	player->m_iEnemyKillCount -= trade->_eks;
+	player->m_iContribution -= trade->_contrib;
+	player->m_iGizonItemUpgradeLeft -= trade->_majs;
+
+	SendNotifyMsg(NULL, iClientH, DEF_NOTIFY_GIZONITEMUPGRADELEFT, m_pClientList[iClientH]->m_iGizonItemUpgradeLeft, NULL, NULL, NULL);
+
+	SendNotifyMsg(NULL, iClientH, DEF_NOTIFY_CONTRIBUTION, player->m_iContribution, NULL, NULL, NULL);
+
+	SendNotifyMsg(NULL, iClientH, DEF_NOTIFY_ENEMYKILLS, m_pClientList[iClientH]->m_iEnemyKillCount, NULL, NULL, NULL);
+}
+
+bool CGame::ReadTrades(string file_name)
+{
+	ifstream in(file_name);
+	if (!in.good() || !in.is_open())
+		return false;
+
+	vector<string> lines;
+
+	{
+		string line;
+
+		while (getline(in, line))
+		{
+			lines.emplace_back(line);
+		}
+	}
+
+	string str;
+	TradeItemUnit* trade = nullptr;
+
+	enum class TradeDataID
+	{
+		None,
+		TradeName,
+		TradeEks,
+		TradeContrib,
+		TradeMajs,
+	};
+
+	int i;
+
+	for (auto& line : lines)
+	{
+		TradeDataID data_id = TradeDataID::None;
+		std::istringstream istr(line);
+		while (getline(istr, str, ','))
+		{
+			switch (data_id)
+			{
+			case TradeDataID::None:
+				if (str.starts_with("trade_name"))
+				{
+					data_id = TradeDataID::TradeName;
+					continue;
+				}
+				else if (str.starts_with("trade_eks"))
+				{
+					data_id = TradeDataID::TradeEks;
+				}
+				else if (str.starts_with("trade_contrib"))
+				{
+					data_id = TradeDataID::TradeContrib;
+				}
+				else if (str.starts_with("trade_majs"))
+				{
+					data_id = TradeDataID::TradeMajs;
+				}
+				break;
+
+			case TradeDataID::TradeName:
+			{
+				u32 id = _trades.size() + 1;
+
+				_trades.push_back(TradeItemUnit{});
+				trade = &_trades.back();
+				trade->_id = id;
+				trade->_item_name = str;
+
+				for (i = 0; i < DEF_MAXITEMTYPES; i++)
+					if (m_pItemConfigList[i] != NULL)
+					{
+						if (trade->_item_name == m_pItemConfigList[i]->m_cName)
+						{
+							
+							break;
+						}
+					}
+				
+				if(!trade)
+				{PutLogList((char*)format("Invalid item name for trade: {}", trade->_item_name).c_str());
+					return false;
+				}
+				else
+				{
+				data_id = TradeDataID::None;
+				continue;
+				}
+				
+			}
+
+			case TradeDataID::TradeEks:
+			{
+				trade->_eks = std::stoul(str);
+				data_id = TradeDataID::None;
+				break;
+			}
+
+			case TradeDataID::TradeContrib:
+			{
+				trade->_contrib = std::stoul(str);
+				data_id = TradeDataID::None;
+				break;
+			}
+
+			case TradeDataID::TradeMajs:
+			{
+				trade->_majs = std::stoul(str);
+				data_id = TradeDataID::None;
+				break;
+			}
+			}
+		}
+	}
+
+	return true;
 }

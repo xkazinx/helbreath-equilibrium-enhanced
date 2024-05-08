@@ -154,3 +154,12 @@ public:
 	QuestID _id = kNullQuestID;
 	vector<Mob> _mobs;
 };
+
+class TradeItemUnit
+{
+public:
+	int _contrib = 0, _majs = 0, _eks = 0;
+	string _item_name;
+	int _item_id;
+	int _id;
+};

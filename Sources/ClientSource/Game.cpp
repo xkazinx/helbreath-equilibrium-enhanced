@@ -2793,6 +2793,10 @@ void CGame::GameRecvMsgHandler(DWORD dwMsgSize, char * pData)
 		Notify_QuestData(pData + 6);
 		break;
 
+	case MSG_TRADE_DATA:
+		Notify_TradeData(pData + 6);
+		break;
+
 	case MSGID_RESPONSE_NOTICEMENT:
 		NoticementHandler(pData);
 		break;
@@ -4203,7 +4207,7 @@ BOOL CGame::bDlgBoxPress_Inventory(short msX, short msY)
  short sX, sY, x1, x2, y1, y2;
 
 #ifdef _DEBUG
- AddEventList("Press Inventory", 10);
+ //AddEventList("Press Inventory", 10);
 #endif
 
 	if (m_bIsDialogEnabled[2] == FALSE) return FALSE;
@@ -17838,7 +17842,7 @@ void CGame::DrawDialogBoxs
 			DrawDialogBox_LevelUpSetting(msX, msY); //@@@
 			break;
 		case 13:
-			DrawDialogBox_CityHallMenu(msX, msY);
+			DrawDialogBox_CityHallMenu(msX, msY, msZ, cLB);
 			break;
 		case 14:
 			DrawDialogBox_Bank(msX, msY, msZ, cLB); //@@@
@@ -21895,6 +21899,37 @@ void CGame::DlgBoxClick_CityhallMenu(short msX, short msY)
 		break;
 	}
 
+	case 31:
+		if(_selected_trade_idx != -1)
+		{
+			PlaySound('E', 14, 5);
+			m_stDialogBoxInfo[13].cMode = 32;
+		}
+		break;
+
+	case 32:
+	{
+		auto no = (msX >= sX + 150) && (msX <= sX + 150 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22);
+		auto yes = (msX >= sX + 30) && (msX <= sX + 30 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22);
+
+		if (yes)
+		{
+			char data[64];
+			auto p = data;
+			Push(p, u32(MSG_TRADE_SELECT));
+			Push(p, u16(0));
+			Push(p, _trades[_selected_trade_idx]._id);
+			m_pGSock->iSendMsg(data, p - data);
+			PlaySound('E', 14, 5);
+			m_stDialogBoxInfo[13].cMode = 31;
+		}
+		else if (no)
+		{
+			PlaySound('E', 14, 5);
+			m_stDialogBoxInfo[13].cMode = 31;
+		}
+		break;
+	}
 
 	case 0:
 		if ((msX > sX + 35) && (msX < sX + 220) && (msY > sY + 70) && (msY < sY + 95))
@@ -21903,8 +21938,9 @@ void CGame::DlgBoxClick_CityhallMenu(short msX, short msY)
 			PlaySound('E', 14, 5);
 		}
 		if ((msX > sX + 35) && (msX < sX + 220) && (msY > sY + 95) && (msY < sY + 120))
-		{	if (m_iRewardGold <= 0) return;
-			m_stDialogBoxInfo[13].cMode = 5; // rq reward gold
+		{	
+			//if (m_iRewardGold <= 0) return;
+			m_stDialogBoxInfo[13].cMode = 31; // rq reward gold
 			PlaySound('E', 14, 5);
 		}
 		if ((msX > sX + 35) && (msX < sX + 220) && (msY > sY + 120) && (msY < sY + 145))
@@ -35696,7 +35732,7 @@ void CGame::DrawDialogBox_LevelUpSetting(short msX, short msY)
 	}	}
 }
 
-void CGame::DrawDialogBox_CityHallMenu(short msX, short msY)
+void CGame::DrawDialogBox_CityHallMenu(short msX, short msY, short msZ, char cLB)
 {
  short sX, sY, szX;
  char cTxt[120];
@@ -35709,6 +35745,105 @@ void CGame::DrawDialogBox_CityHallMenu(short msX, short msY)
 	DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_TEXT, sX, sY, 18);//CityHall Menu Text
 
 	switch (m_stDialogBoxInfo[13].cMode) {
+	case 31:
+	{
+		int iTotalLines, iPointerLoc;
+		double d1, d2, d3;
+		int dnumber = 13;
+
+		iTotalLines = _trades.size();
+		/*for (int i = 0; i < vec_questlist.size(); i++)
+		{
+			iTotalLines++;
+		}*/
+
+		int maxlines = 13;
+
+		if (iTotalLines > maxlines) DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME2, sX, sY, 3);
+		if (iGetTopDialogBoxIndex() == dnumber && msZ != 0)
+		{
+			m_stDialogBoxInfo[dnumber].sView = m_stDialogBoxInfo[dnumber].sView - msZ / 60;
+			m_DInput.m_sZ = 0;
+		}
+		if (m_stDialogBoxInfo[dnumber].sView < 0) m_stDialogBoxInfo[dnumber].sView = 0;
+		if (iTotalLines > maxlines && m_stDialogBoxInfo[dnumber].sView > iTotalLines - maxlines) m_stDialogBoxInfo[dnumber].sView = iTotalLines - maxlines;
+
+		if (iTotalLines > maxlines) {
+			d1 = (double)m_stDialogBoxInfo[dnumber].sView;
+			d2 = (double)(iTotalLines - maxlines);
+			d3 = (274.0f * d1) / d2;
+			iPointerLoc = (int)(d3 + 0.5);
+			DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME2, sX, sY, 3);
+			DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_GAME2, sX + 242, sY + 35 + iPointerLoc, 7);
+		}
+		else iPointerLoc = 0;
+		int i_pos = 0;
+		int r = 0;
+		int g = 0;
+		int b = 0;
+		int y = sY + 35;
+		PutString(sX + 23, y, "Item name", RGB(r, g, b));
+		PutString(sX + 130 - 7, y, "Eks", RGB(r, g, b));
+		PutString(sX + 170 - 7, y, "Contrib", RGB(r, g, b));
+		PutString(sX + 210 - 7, y, "Majs", RGB(r, g, b));
+
+		_selected_trade_idx = -1;
+
+		for (int i = 0; i < maxlines; i++)
+			if (i + m_stDialogBoxInfo[dnumber].sView < iTotalLines)
+			{
+				auto* trade = &_trades[i + m_stDialogBoxInfo[dnumber].sView];
+				y = sY + 55 + (15 * i);
+
+				 r = 255;
+				 g = 255;
+				 b = 255;
+				if ((msX > sX + 20) && (msX < sX + 327) && (msY > y) && (msY < y + 15))
+				{
+					_selected_trade_idx = i + m_stDialogBoxInfo[dnumber].sView;
+				}
+				else
+				{
+					r = 4;
+					g = 0;
+					b = 50;
+				}
+
+				PutString(sX + 23, y, trade->_item_name.data(), RGB(r, g, b));
+				PutString(sX + 130, y, format("{}", trade->_eks).data(), RGB(r, g, b));
+				PutString(sX + 170, y, format("{}", trade->_contrib).data(), RGB(r, g, b));
+				PutString(sX + 210, y, format("{}", trade->_majs).data(), RGB(r, g, b));
+			}
+
+		if (cLB != 0 && iTotalLines > maxlines) {
+			if ((iGetTopDialogBoxIndex() == dnumber)) {
+				if ((msX >= sX + 240) && (msX <= sX + 260) && (msY >= sY + 40) && (msY <= sY + 320)) {
+					d1 = (double)(msY - (sY + 35));
+					d2 = (double)(iTotalLines - maxlines);
+					d3 = (d1 * d2) / 274.0f;
+					iPointerLoc = (int)d3;
+					if (iPointerLoc > iTotalLines - maxlines) iPointerLoc = iTotalLines - maxlines;
+					m_stDialogBoxInfo[dnumber].sView = iPointerLoc;
+				}
+			}
+		}
+		else m_stDialogBoxInfo[dnumber].bIsScrollSelected = FALSE;
+
+		break;
+	}
+	case 32:
+		PutAlignedString(sX, sX + szX, sY + 70, DRAW_DIALOGBOX_CITYHALL_MENU57, 255, 255, 255);
+		PutAlignedString(sX, sX + szX, sY + 85, (char*)_trades[_selected_trade_idx]._item_name.c_str(), 255, 255, 255);
+
+		if ((msX >= sX + 30) && (msX <= sX + 30 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22))
+			DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 30, sY + 290, 19);
+		else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 30, sY + 290, 18);
+
+		if ((msX >= sX + 150) && (msX <= sX + 150 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22))
+			DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 150, sY + 290, 3);
+		else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 150, sY + 290, 2);
+		break;
+
 	case 30:
 		PutAlignedString(sX, sX + szX, sY + 70, "Are you sure you want", 255, 255, 255);
 		PutAlignedString(sX, sX + szX, sY + 85, "to cancel the quest?", 255, 255, 255);
@@ -35731,11 +35866,13 @@ void CGame::DrawDialogBox_CityHallMenu(short msX, short msY)
 			else PutAlignedString(sX, sX + szX, sY + 70, DRAW_DIALOGBOX_CITYHALL_MENU1, 4,0,50);		//"
 		}else    PutAlignedString(sX, sX + szX, sY + 70, DRAW_DIALOGBOX_CITYHALL_MENU1, 65,65,65);			//"
 
-		if (m_iRewardGold > 0)
-		{	if ((msX > sX + 35) && (msX < sX + 220) && (msY > sY + 95) && (msY < sY + 120))
-				 PutAlignedString(sX, sX + szX, sY + 95, DRAW_DIALOGBOX_CITYHALL_MENU4, 255,255,255);	//"
-			else PutAlignedString(sX, sX + szX, sY + 95, DRAW_DIALOGBOX_CITYHALL_MENU4, 4,0,50);		//"
-		}else    PutAlignedString(sX, sX + szX, sY + 95, DRAW_DIALOGBOX_CITYHALL_MENU4, 65,65,65);			//"
+		//if (m_iRewardGold > 0)
+		{	
+			if ((msX > sX + 35) && (msX < sX + 220) && (msY > sY + 95) && (msY < sY + 120))
+				 PutAlignedString(sX, sX + szX, sY + 95, DRAW_DIALOGBOX_CITYHALL_MENU56, 255,255,255);	//"
+			else PutAlignedString(sX, sX + szX, sY + 95, DRAW_DIALOGBOX_CITYHALL_MENU56, 4,0,50);		//"
+		}
+//else    PutAlignedString(sX, sX + szX, sY + 95, DRAW_DIALOGBOX_CITYHALL_MENU56, 65,65,65);			//"
 
 		// 3.51 Cityhall Menu - Request Hero's Items - Diuuude
 		if ((m_iEnemyKillCount >= 100) && (m_iContribution >= 10))
@@ -46695,4 +46832,26 @@ void CGame::PutString2_Aligned(int iX1, int iX2, int iY, const char* pString, sh
 	SetRect(&rt, iX1, iY, iX2, iY + 15);
 	m_DDraw.DrawText(&rt, (char*)pString, RGB(sR, sG, sB));
 	m_DDraw._ReleaseBackBufferDC();
+}
+
+
+void CGame::Notify_TradeData(char* data)
+{
+	_trades.clear();
+
+	u32 total;
+	Pop(data, total);
+
+	while(total-- > 0)
+	{
+		TradeItemUnit trade;
+		
+		Pop(data, trade._id);
+		Pop(data, trade._item_name);
+		Pop(data, trade._eks);
+		Pop(data, trade._contrib);
+		Pop(data, trade._majs);
+
+		_trades.push_back(trade);
+	}
 }

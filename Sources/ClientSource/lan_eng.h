@@ -1960,3 +1960,9 @@
 #define RESPONSE_CHARGED_TELEPORT6 "You need more gold to teleport."
 #define RESPONSE_CHARGED_TELEPORT7 ".........................."
 
+// - - -
+
+
+#define	DRAW_DIALOGBOX_CITYHALL_MENU56	"Trade Items"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU57	"Do you want to get this item?"
+#define	DRAW_DIALOGBOX_CITYHALL_MENU58	"Not enough requirements"

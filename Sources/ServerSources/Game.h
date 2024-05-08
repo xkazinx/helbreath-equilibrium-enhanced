@@ -878,8 +878,11 @@ public:
 
 
 
-		
-	int  iComposeInitMapData(short sX, short sY, int iClientH, char * pData);
+	vector<TradeItemUnit> _trades;		
+	void SendTradeData(CClient* player);
+	void RequestTradeItem(int iClientH, char* data);
+	bool ReadTrades(string file_name);
+	int  iComposeInitMapData(short sX, short sY, int iClientH, char* pData);
 	void RequestInitDataHandler(int iClientH, char * pData, char cKey);
 	void RequestInitPlayerHandler(int iClientH, char * pData, char cKey);
 	int iClientMotion_Move_Handler(int iClientH, short sX, short sY, char cDir, char cMoveType, BOOL bIsBlocked = FALSE);

@@ -159,10 +159,13 @@ using std::format;
 class CGame
 {
 public:
+	vector<TradeItemUnit> _trades;
+	u32 _selected_trade_idx;
+
 	bool _quest_helper = true;
 	vector<QuestUnit> _quests;
 	vector<QuestUnit*> _side_quests;
-
+	
 	u32 _selected_quest_idx;
 	QuestHandler _quest;
 	int _quest_draw_y;
@@ -245,7 +248,7 @@ public:
 	void DrawDialogBox_Chat(short msX, short msY, short msZ, char cLB);//10
 	void DrawDialogBox_Shop(short msX, short msY, short msZ, char cLB);//11
 	void DrawDialogBox_LevelUpSetting(short msX, short msY);//12
-	void DrawDialogBox_CityHallMenu(short msX, short msY);//13
+	void DrawDialogBox_CityHallMenu(short msX, short msY, short msZ, char cLB);//13
 	void DrawDialogBox_Bank(short msX, short msY, short msZ, char cLB);//14
 	void DrawDialogBox_Skill(short msX, short msY, short msZ, char cLB);//15
 	void DrawDialogBox_MagicShop(short msX, short msY, short msZ);//16
@@ -468,6 +471,7 @@ public:
 	void _DrawBlackRect(int iSize);
 	void DrawNpcName(   short sX, short sY, short sOwnerType, int iStatus);
 	void DrawObjectName(short sX, short sY, char * pName, int iStatus);
+	void Notify_TradeData(char* data);
 	void PlaySound(char cType, int iNum, int iDist, long lPan = 0);
 	void _RemoveChatMsgListByObjectID(int iObjectID);
 	void _LoadTextDlgContents(int cType);
