@@ -1966,3 +1966,8 @@
 #define	DRAW_DIALOGBOX_CITYHALL_MENU56	"Trade Items"
 #define	DRAW_DIALOGBOX_CITYHALL_MENU57	"Do you want to get this item?"
 #define	DRAW_DIALOGBOX_CITYHALL_MENU58	"Not enough requirements"
+
+#define NEWTEXT1	"Trade Eks"
+#define NEWTEXT2	"Trade Coins"
+#define NEWTEXT3	"Trade Majestics"
+#define NEWTEXT4	"Trade Contribution"

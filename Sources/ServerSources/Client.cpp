@@ -251,7 +251,8 @@ CClient::CClient(HWND hWnd)
 
 	m_iQuestRewardType	 = NULL; // Äù½ºÆ® ÇØ°á½Ã »óÇ° Á¾·ù -> ¾ÆÀÌÅÛÀÇ ID°ªÀÌ´Ù.
 	m_iQuestRewardAmount = NULL; // »óÇ° °¹¼ö 
-
+	
+	_coins = 0;
 	m_iContribution = NULL;			// °øÇåµµ 
 	m_bQuestMatchFlag_Loc = FALSE;  // Äù½ºÆ® Àå¼Ò È®ÀÎ¿ë ÇÃ·¡±×.
 	m_bIsQuestCompleted   = FALSE;

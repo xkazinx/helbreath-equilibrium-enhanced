@@ -76,6 +76,9 @@
 #define DEF_ITEMEFFECTTYPE_FARMING			30
 #define DEF_ITEMEFFECTTYPE_SLATES			31
 #define DEF_ITEMEFFECTTYPE_ARMORDYE			32
+#define DEF_ITEMEFFECTTYPE_MERIENNECK		50
+#define DEF_ITEMEFFECTTYPE_XELIMANECK		51 // add to item
+
 #define DEF_ITEMEFFECTTYPE_CRIT				33		// Adds single Crit
 #define DEF_ITEMEFFECTTYPE_BOMB				66		// Add by Snoopy
 #define DEF_ITEMEFFECTTYPE_EVENT_ITEMDROP	67		// Item that will drop even before any ZemStone of sacrifice, for events
@@ -105,6 +108,11 @@ public:
 	// re introduced by SNOOPY using m_sSpecialEffectValue1/2
 	//short m_sSM_HitRatio, m_sL_HitRatio;
 	short m_sSpecialEffectValue1, m_sSpecialEffectValue2; 
+
+	int GetUpgrade()
+	{
+		return (m_dwAttribute & 0x0F0000000) >> 28;
+	}
 
 	short m_sSprite;
 	short m_sSpriteFrame;

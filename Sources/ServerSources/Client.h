@@ -348,6 +348,7 @@ public:
 	int   m_iQuestRewardAmount;	 // »óÇ° °¹¼ö 
 
 	int   m_iContribution;		 // µµ½Ã¿¡ ´ëÇÑ °øÇåµµ. 
+	int _coins;
 
 	BOOL  m_bQuestMatchFlag_Loc; // Äù½ºÆ® ¼öÇà Á¶°ÇÀ» ÆÇ´ÜÇÏ±â À§ÇÔ.
 	BOOL  m_bIsQuestCompleted;   // Äù½ºÆ®°¡ ¿Ï·áµÇ¾ú´Â°¡? 

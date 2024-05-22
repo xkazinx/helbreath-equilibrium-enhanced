@@ -21900,10 +21900,43 @@ void CGame::DlgBoxClick_CityhallMenu(short msX, short msY)
 	}
 
 	case 31:
+		if ((msX >= sX + 150) && (msX <= sX + 150 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22))
+		{
+			m_stDialogBoxInfo[13].cMode = 33;
+			PlaySound('E', 14, 5);
+		}
+		else
 		if(_selected_trade_idx != -1)
 		{
 			PlaySound('E', 14, 5);
 			m_stDialogBoxInfo[13].cMode = 32;
+		}
+		break;
+
+	case 33:
+		if ((msX >= sX + 150) && (msX <= sX + 150 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22))
+		{
+			PlaySound('E', 14, 5);
+			m_stDialogBoxInfo[13].cMode = 0;
+		}
+		else
+		if(_selected_trade_type != TradeType::Max)
+		{
+			PlaySound('E', 14, 5);
+			_trades_by_type.clear();
+
+			for(auto & trade : _trades)
+			{
+				if((trade._eks > 0 && _selected_trade_type == TradeType::Eks) || 
+					(trade._contrib > 0 && _selected_trade_type == TradeType::Contrib) || 
+					(trade._majs > 0 && _selected_trade_type == TradeType::Majs) || 
+					(trade._coins > 0 && _selected_trade_type == TradeType::Coins))
+				{
+					_trades_by_type.push_back(&trade);
+				}
+			}
+
+			m_stDialogBoxInfo[13].cMode = 31;
 		}
 		break;
 
@@ -21918,7 +21951,7 @@ void CGame::DlgBoxClick_CityhallMenu(short msX, short msY)
 			auto p = data;
 			Push(p, u32(MSG_TRADE_SELECT));
 			Push(p, u16(0));
-			Push(p, _trades[_selected_trade_idx]._id);
+			Push(p, _trades_by_type[_selected_trade_idx]->_id);
 			m_pGSock->iSendMsg(data, p - data);
 			PlaySound('E', 14, 5);
 			m_stDialogBoxInfo[13].cMode = 31;
@@ -21940,7 +21973,7 @@ void CGame::DlgBoxClick_CityhallMenu(short msX, short msY)
 		if ((msX > sX + 35) && (msX < sX + 220) && (msY > sY + 95) && (msY < sY + 120))
 		{	
 			//if (m_iRewardGold <= 0) return;
-			m_stDialogBoxInfo[13].cMode = 31; // rq reward gold
+			m_stDialogBoxInfo[13].cMode = 33; // rq reward gold
 			PlaySound('E', 14, 5);
 		}
 		if ((msX > sX + 35) && (msX < sX + 220) && (msY > sY + 120) && (msY < sY + 145))
@@ -29125,6 +29158,12 @@ NMH_LOOPBREAK2:;
 		m_iContribution = *ip;
 		break;
 
+	case DEF_NOTIFY_COINS:
+		cp = (char*)(pData + DEF_INDEX2_MSGTYPE + 2);
+		ip = (int*)cp;
+		_coins = *ip;
+		break;
+
 	case DEF_NOTIFY_DOWNSKILLINDEXSET:
 		NotifyMsg_DownSkillIndexSet(pData);
 		break;
@@ -31953,8 +31992,9 @@ void CGame::GetNpcName(short sType, char *pName)
 	}
 }
 
-void CGame::GetItemName(CItem *pItem, char *pStr1, char *pStr2, char *pStr3)
-{int i;
+void CGame::GetItemName(CItem *pItem, char *pStr1, char *pStr2, char *pStr3, char * pStr4)
+{
+	int i;
  char cTxt[256], cTxt2[256], cName[51];
  DWORD dwType1, dwType2, dwValue1, dwValue2, dwValue3;
 
@@ -31963,6 +32003,9 @@ void CGame::GetItemName(CItem *pItem, char *pStr1, char *pStr2, char *pStr3)
 	ZeroMemory(pStr1, sizeof(pStr1));
 	ZeroMemory(pStr2, sizeof(pStr2));
 	ZeroMemory(pStr3, sizeof(pStr3));
+
+	if(pStr4)
+		ZeroMemory(pStr4, sizeof(pStr4));
 
 	strcpy(cName, pItem->m_cName);
 	for (i = 0; i < DEF_MAXITEMNAMES; i++)
@@ -32175,8 +32218,27 @@ void CGame::GetItemName(CItem *pItem, char *pStr1, char *pStr2, char *pStr3)
 	}	}	}
 
 	dwValue3 = (pItem->m_dwAttribute & 0xF0000000) >> 28;
+
+	if(pStr4)
+	{
+		if (strcmp(pItem->m_cName, "NecklaceOfMerien") == 0)
+		{
+			strcpy(pStr4, format("Defense: +{}", 
+				common::kMerienNeckDefense + 
+				(common::kMerienNeckDefenseAdd * dwValue3)).c_str());
+		}
+
+		if (strcmp(pItem->m_cName, "NecklaceOfXelima") == 0)
+		{
+			strcpy(pStr4, format("Hitting Probability: +{}",
+				common::kMerienNeckDefense +
+				(common::kMerienNeckDefenseAdd * dwValue3)).c_str());
+		}
+	}
+
 	if (dwValue3 > 0)
-	{	if (pStr1[strlen(pStr1)-2] == '+')
+	{	
+		/*if (pStr1[strlen(pStr1)-2] == '+')
 		{	dwValue3 = atoi((char *)(pStr1 + strlen(pStr1)-1)) + dwValue3;
 			ZeroMemory(cTxt, sizeof(cTxt));
 			memcpy(cTxt, pStr1, strlen(pStr1)-2);
@@ -32196,14 +32258,17 @@ void CGame::GetItemName(CItem *pItem, char *pStr1, char *pStr2, char *pStr3)
 			ZeroMemory(pStr1, sizeof(pStr1));
 			strcpy(pStr1, cTxt2);
 #endif
-		}else
-		{	ZeroMemory(cTxt, sizeof(cTxt));
+		}else*/
+		{	
+			ZeroMemory(cTxt, sizeof(cTxt));
 			wsprintf(cTxt, "+%d", dwValue3);
 			strcat(pStr1, cTxt);
-	}	}
+		}	
+	//}ç
+	}
 }
 
-void CGame::GetItemName(char * cItemName, DWORD dwAttribute, char *pStr1, char *pStr2, char *pStr3)
+void CGame::GetItemName(char * cItemName, DWORD dwAttribute, char *pStr1, char *pStr2, char *pStr3,char *pStr4)
 {
  int i;
  char cTxt[256], cTxt2[256], cName[51];
@@ -32214,7 +32279,8 @@ void CGame::GetItemName(char * cItemName, DWORD dwAttribute, char *pStr1, char *
 	ZeroMemory(pStr1, sizeof(pStr1));
 	ZeroMemory(pStr2, sizeof(pStr2));
 	ZeroMemory(pStr3, sizeof(pStr3));
-
+	if(pStr4)
+		ZeroMemory(pStr4, sizeof(pStr4));
 	strcpy(cName, cItemName);
 	for (i = 0; i < DEF_MAXITEMNAMES; i++)
 	if ((m_pItemNameList[i] != NULL) && (strcmp(m_pItemNameList[i]->m_cOriginName, cItemName) == 0)) {
@@ -32410,8 +32476,28 @@ void CGame::GetItemName(char * cItemName, DWORD dwAttribute, char *pStr1, char *
 	}	}	}
 
 	dwValue3 = (dwAttribute & 0xF0000000) >> 28;
+	
+	if(pStr4)
+	{
+		if (strcmp(cItemName, "NecklaceOfMerien") == 0)
+		{
+			dwValue3 = 3; // #REMOVE!
+			strcpy(pStr4, format("Defense: +{}", 
+				common::kMerienNeckDefense + 
+				(common::kMerienNeckDefenseAdd * dwValue3)).c_str());
+		}
+
+		if (strcmp(cItemName, "NecklaceOfXelima") == 0)
+		{
+			strcpy(pStr4, format("Hitting Probability: +{}",
+				common::kMerienNeckDefense +
+				(common::kMerienNeckDefenseAdd * dwValue3)).c_str());
+		}
+	}
+
 	if (dwValue3 > 0)
-	{	if (pStr1[strlen(pStr1)-2] == '+')
+	{	
+		/*if (pStr1[strlen(pStr1)-2] == '+')
 		{	dwValue3 = atoi((char *)(pStr1 + strlen(pStr1)-1)) + dwValue3;
 			ZeroMemory(cTxt, sizeof(cTxt));
 			memcpy(cTxt, pStr1, strlen(pStr1)-2);
@@ -32419,25 +32505,26 @@ void CGame::GetItemName(char * cItemName, DWORD dwAttribute, char *pStr1, char *
 			wsprintf(cTxt2, "%s+%d", cTxt, dwValue3);
 			ZeroMemory(pStr1, sizeof(pStr1));
 			strcpy(pStr1, cTxt2);
-		}else 
 
-#ifdef DEF_EQUILIBRIUM_PROJECT  // MS10..MS11..12..13..
-		if (   (strcmp( cItemName, "NeckMS10" ) == 0)	
-			|| (strcmp( cItemName, "NeckMS15" ) == 0))
-		{	dwValue3 = atoi((char *)(cItemName + strlen(cItemName)-1)) + dwValue3;
+#ifdef DEF_EQUILIBRIUM_PROJECT // MS10..MS11..12..13..
+		}else if(  (strcmp( pItem->m_cName, "NeckMS10" ) == 0)	
+				|| (strcmp( pItem->m_cName, "NeckMS15" ) == 0))
+		{	dwValue3 = atoi((char *)(pItem->m_cName + strlen(pItem->m_cName)-1)) + dwValue3;
 			ZeroMemory(cTxt, sizeof(cTxt));
 			memcpy(cTxt, pStr1, strlen(pStr1)-2);
 			ZeroMemory(cTxt2, sizeof(cTxt2));
 			wsprintf(cTxt2, "%s%d)", cTxt, dwValue3);
 			ZeroMemory(pStr1, sizeof(pStr1));
-			strcpy(pStr1, cTxt2);	
-		}else
+			strcpy(pStr1, cTxt2);
 #endif
-
-		{	ZeroMemory(cTxt, sizeof(cTxt));
+		}else*/
+		{	
+			ZeroMemory(cTxt, sizeof(cTxt));
 			wsprintf(cTxt, "+%d", dwValue3);
 			strcat(pStr1, cTxt);
-	}	}
+		}	
+	//}ç
+	}
 }
 
 void CGame::_CalcSocketClosed()
@@ -32810,9 +32897,9 @@ void CGame::UpdateScreen_OnGame()
 		}else m_pSprite[DEF_SPRID_ITEMPACK_PIVOTPOINT + m_pItemList[m_stMCursor.sSelectedObjectID]->m_sSprite]->PutSpriteFast(msX - m_stMCursor.sDistX, msY - m_stMCursor.sDistY,
 					                                                  m_pItemList[m_stMCursor.sSelectedObjectID]->m_sSpriteFrame, dwTime);
 
-		char cStr1[64], cStr2[64], cStr3[64];
+		char cStr1[64], cStr2[64], cStr3[64], cStr4[64];
 		int  iLoc;
-		GetItemName(m_pItemList[m_stMCursor.sSelectedObjectID], cStr1, cStr2, cStr3);
+		GetItemName(m_pItemList[m_stMCursor.sSelectedObjectID], cStr1, cStr2, cStr3, cStr4);
 
 		iLoc = 0;
 		if (strlen(cStr1) != 0)
@@ -32828,6 +32915,11 @@ void CGame::UpdateScreen_OnGame()
 		}
 		if (strlen(cStr3) != 0)
 		{	PutString(msX, msY +25 +iLoc, cStr3, RGB(150,150,150), FALSE, 1);
+			iLoc += 15;
+		}
+		if (strlen(cStr4) != 0)
+		{
+			PutString(msX, msY + 25 + iLoc, cStr4, RGB(150, 150, 150), FALSE, 1);
 			iLoc += 15;
 		}
 		if ( (m_pItemList[m_stMCursor.sSelectedObjectID]->m_sLevelLimit != 0) && ((m_pItemList[m_stMCursor.sSelectedObjectID]->m_dwAttribute & 0x00000001) == 0) )
@@ -32878,11 +32970,11 @@ void CGame::UpdateScreen_OnGame()
 		PutString( 10, 200, G_cTxt, RGB(255,255,255) );
 	}
 	DrawTopMsg();
-
+	/*
 #ifdef _DEBUG
 	wsprintf(G_cTxt, "M(%d,%d) T(%d,%d)", msX, msY, (m_sViewPointX + msX)/32, (m_sViewPointY + msY)/32);
 	PutString(msX, msY +30, G_cTxt, RGB(255,255,255));
-#endif
+#endif*/
 
 	// LogOut process
 #ifdef DEF_EQUILIBRIUM_PROJECT // m_bFullParalyze prevents logout
@@ -34738,7 +34830,7 @@ void CGame::DrawDialogBox_Bank(short msX, short msY, short msZ, char cLB)
 {	short sX, sY, szX;
 	int  i, iTotalLines, iPointerLoc, iLoc;
 	double d1, d2, d3;
-	char cItemColor, cStr1[64], cStr2[64], cStr3[64];
+	char cItemColor, cStr1[64], cStr2[64], cStr3[64], cStr4[64];
 	BOOL bFlag = FALSE;
 
 	sX = m_stDialogBoxInfo[14].sX;
@@ -34750,6 +34842,7 @@ void CGame::DrawDialogBox_Bank(short msX, short msY, short msZ, char cLB)
 	ZeroMemory( cStr1, sizeof(cStr1) );
 	ZeroMemory( cStr2, sizeof(cStr2) );
 	ZeroMemory( cStr3, sizeof(cStr3) );
+	ZeroMemory( cStr4, sizeof(cStr4) );
 	iLoc = 45;
 
 	switch (m_stDialogBoxInfo[14].cMode) {
@@ -34761,7 +34854,7 @@ void CGame::DrawDialogBox_Bank(short msX, short msY, short msZ, char cLB)
 	case 0:
 		for (i = 0; i < m_stDialogBoxInfo[14].sV1; i++)
 		if ((m_pBankList[i + m_stDialogBoxInfo[14].sView] != NULL) && ((i + m_stDialogBoxInfo[14].sView) < DEF_MAXBANKITEMS)) {
-			GetItemName(m_pBankList[i + m_stDialogBoxInfo[14].sView], cStr1, cStr2, cStr3);
+			GetItemName(m_pBankList[i + m_stDialogBoxInfo[14].sView], cStr1, cStr2, cStr3, cStr4);
 			if ((msX > sX + 30) && (msX < sX + 210) && (msY >= sY + 110 + i*15) && (msY <= sY + 124 + i*15))
 			{
 				bFlag = TRUE;
@@ -34781,6 +34874,11 @@ void CGame::DrawDialogBox_Bank(short msX, short msY, short msZ, char cLB)
 				{
 					iLoc += 15;
 					PutAlignedString(sX + 70, sX + szX, sY + iLoc, cStr3, 150, 150, 150 );
+				}
+				if (strlen(cStr4) > 0)
+				{
+					iLoc += 15;
+					PutAlignedString(sX + 70, sX + szX, sY + iLoc, cStr4, 150, 150, 150);
 				}
 				if( m_pBankList[i + m_stDialogBoxInfo[14].sView]->m_sLevelLimit != 0 && m_pBankList[i + m_stDialogBoxInfo[14].sView]->m_dwAttribute & 0x00000001 )
 				{
@@ -35751,7 +35849,7 @@ void CGame::DrawDialogBox_CityHallMenu(short msX, short msY, short msZ, char cLB
 		double d1, d2, d3;
 		int dnumber = 13;
 
-		iTotalLines = _trades.size();
+		iTotalLines = _trades_by_type.size();
 		/*for (int i = 0; i < vec_questlist.size(); i++)
 		{
 			iTotalLines++;
@@ -35783,16 +35881,25 @@ void CGame::DrawDialogBox_CityHallMenu(short msX, short msY, short msZ, char cLB
 		int b = 0;
 		int y = sY + 35;
 		PutString(sX + 23, y, "Item name", RGB(r, g, b));
-		PutString(sX + 130 - 7, y, "Eks", RGB(r, g, b));
-		PutString(sX + 170 - 7, y, "Contrib", RGB(r, g, b));
-		PutString(sX + 210 - 7, y, "Majs", RGB(r, g, b));
+
+		if(_selected_trade_type == TradeType::Eks)
+			PutString(sX + 200, y, "Eks", RGB(r, g, b));
+
+		if (_selected_trade_type == TradeType::Contrib)
+			PutString(sX + 200, y, "Contrib.", RGB(r, g, b));
+
+		if (_selected_trade_type == TradeType::Majs)
+			PutString(sX + 200, y, "Majestics", RGB(r, g, b));
+
+		if (_selected_trade_type == TradeType::Coins)
+			PutString(sX + 200, y, "Coins", RGB(r, g, b));
 
 		_selected_trade_idx = -1;
 
 		for (int i = 0; i < maxlines; i++)
 			if (i + m_stDialogBoxInfo[dnumber].sView < iTotalLines)
 			{
-				auto* trade = &_trades[i + m_stDialogBoxInfo[dnumber].sView];
+				auto* trade = _trades_by_type[i + m_stDialogBoxInfo[dnumber].sView];
 				y = sY + 55 + (15 * i);
 
 				 r = 255;
@@ -35810,9 +35917,21 @@ void CGame::DrawDialogBox_CityHallMenu(short msX, short msY, short msZ, char cLB
 				}
 
 				PutString(sX + 23, y, trade->_item_name.data(), RGB(r, g, b));
-				PutString(sX + 130, y, format("{}", trade->_eks).data(), RGB(r, g, b));
-				PutString(sX + 170, y, format("{}", trade->_contrib).data(), RGB(r, g, b));
-				PutString(sX + 210, y, format("{}", trade->_majs).data(), RGB(r, g, b));
+
+				int * value = nullptr;
+				if (_selected_trade_type == TradeType::Eks)
+					value = &trade->_eks;
+
+				if (_selected_trade_type == TradeType::Contrib)
+					value = &trade->_contrib;
+
+				if (_selected_trade_type == TradeType::Majs)
+					value = &trade->_majs;
+
+				if (_selected_trade_type == TradeType::Coins)
+					value = &trade->_coins;
+
+				PutString(sX + 200, y, format("{}", *value).data(), RGB(r, g, b));
 			}
 
 		if (cLB != 0 && iTotalLines > maxlines) {
@@ -35829,11 +35948,14 @@ void CGame::DrawDialogBox_CityHallMenu(short msX, short msY, short msZ, char cLB
 		}
 		else m_stDialogBoxInfo[dnumber].bIsScrollSelected = FALSE;
 
+		if ((msX >= sX + 150) && (msX <= sX + 150 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22))
+			DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 150, sY + 290, 1);
+		else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 150, sY + 290, 0);
 		break;
 	}
 	case 32:
 		PutAlignedString(sX, sX + szX, sY + 70, DRAW_DIALOGBOX_CITYHALL_MENU57, 255, 255, 255);
-		PutAlignedString(sX, sX + szX, sY + 85, (char*)_trades[_selected_trade_idx]._item_name.c_str(), 255, 255, 255);
+		PutAlignedString(sX, sX + szX, sY + 85, (char*)_trades_by_type[_selected_trade_idx]->_item_name.c_str(), 255, 255, 255);
 
 		if ((msX >= sX + 30) && (msX <= sX + 30 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22))
 			DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 30, sY + 290, 19);
@@ -35844,10 +35966,49 @@ void CGame::DrawDialogBox_CityHallMenu(short msX, short msY, short msZ, char cLB
 		else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 150, sY + 290, 2);
 		break;
 
+	case 33:
+	{
+		_selected_trade_type = TradeType::Max;
+		int y = sY + 35;
+		auto add = [&](string text, TradeType type)
+		{
+			int r = 255;
+			int g = 255;
+			int b = 255;
+
+			y += 25;
+
+			if ((msX > sX + 20) && (msX < sX + 327) && (msY > y) && (msY < y + 15))
+			{
+				_selected_trade_type = type;
+			}
+			else
+			{
+				r = 4;
+				g = 0;
+				b = 50;
+			}
+
+			PutAlignedString(sX, sX + szX, y, text.data(), r, g, b);
+		};
+
+		add(NEWTEXT1, TradeType::Eks);
+		add(NEWTEXT2, TradeType::Coins);
+		add(NEWTEXT3, TradeType::Majs);
+		add(NEWTEXT4, TradeType::Contrib);
+		
+		y += 25;
+
+		PutAlignedString(sX, sX + szX, y, string("Your coins: " + std::to_string(_coins)).data(), 255, 255, 255);
+
+		if ((msX >= sX + 150) && (msX <= sX + 150 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22))
+			DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 150, sY + 290, 1);
+		else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 150, sY + 290, 0);
+		break;
+	}
 	case 30:
 		PutAlignedString(sX, sX + szX, sY + 70, "Are you sure you want", 255, 255, 255);
 		PutAlignedString(sX, sX + szX, sY + 85, "to cancel the quest?", 255, 255, 255);
-
 
 		if ((msX >= sX + 30) && (msX <= sX + 30 + 76) && (msY >= sY + 290) && (msY <= sY + 290 + 22))
 			DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + 30, sY + 290, 19);
@@ -42799,6 +42960,9 @@ void CGame::InitDataResponseHandler(char * pData)
 	m_iContribution = *ip;
 	m_iContributionPrice = 0;
 	cp += 4;
+	ip = (int*)cp;
+	_coins = *ip;
+	cp += 4;
 	bIsObserverMode = (BOOL)*cp;
 	cp++;
 	ip = (int *)cp;
@@ -44137,7 +44301,7 @@ void CGame::DrawDialogBox_Help(int msX, int msY)
 
 void CGame::DrawDialogBox_ItemUpgrade(int msX, int msY)
 {int i, sX, sY, iValue;
- char cItemColor, cStr1[120], cStr2[120], cStr3[120];
+ char cItemColor, cStr1[120], cStr2[120], cStr3[120], cStr4[120];
  DWORD dwTime = timeGetTime();
 
 	sX = m_stDialogBoxInfo[34].sX;
@@ -44250,10 +44414,12 @@ void CGame::DrawDialogBox_ItemUpgrade(int msX, int msY)
 			ZeroMemory(cStr1, sizeof(cStr1));
 			ZeroMemory(cStr2, sizeof(cStr2));
 			ZeroMemory(cStr3, sizeof(cStr3));
-			GetItemName(m_pItemList[m_stDialogBoxInfo[34].sV1], cStr1, cStr2, cStr3);
+			ZeroMemory(cStr4, sizeof(cStr4));
+			GetItemName(m_pItemList[m_stDialogBoxInfo[34].sV1], cStr1, cStr2, cStr3, cStr4);
 			PutAlignedString(sX + 24, sX + 248, sY +230 +20, cStr1);
 			PutAlignedString(sX + 24, sX + 248, sY +245 +20, cStr2);
 			PutAlignedString(sX + 24, sX + 248, sY +260 +20, cStr3);
+			PutAlignedString(sX + 24, sX + 248, sY +275 +20, cStr4);
 			if( m_iGizonItemUpgradeLeft < iValue )
 				DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + DEF_LBTNPOSX, sY + DEF_BTNPOSY, 46);
 			else
@@ -44289,10 +44455,12 @@ void CGame::DrawDialogBox_ItemUpgrade(int msX, int msY)
 			ZeroMemory(cStr1, sizeof(cStr1));
 			ZeroMemory(cStr2, sizeof(cStr2));
 			ZeroMemory(cStr3, sizeof(cStr3));
-			GetItemName(m_pItemList[m_stDialogBoxInfo[34].sV1], cStr1, cStr2, cStr3);
+			ZeroMemory(cStr4, sizeof(cStr4));
+			GetItemName(m_pItemList[m_stDialogBoxInfo[34].sV1], cStr1, cStr2, cStr3 ,cStr4);
 			PutAlignedString(sX + 24, sX + 248, sY +230 +20, cStr1);
 			PutAlignedString(sX + 24, sX + 248, sY +245 +20, cStr2);
 			PutAlignedString(sX + 24, sX + 248, sY +260 +20, cStr3);
+			PutAlignedString(sX + 24, sX + 248, sY +275 +20, cStr4);
 		}
 		if (((dwTime - m_stDialogBoxInfo[34].dwV1)/1000 > 4) && (m_stDialogBoxInfo[34].dwV1 != NULL))
 		{	m_stDialogBoxInfo[34].dwV1 = NULL;
@@ -44319,10 +44487,12 @@ void CGame::DrawDialogBox_ItemUpgrade(int msX, int msY)
 			ZeroMemory(cStr1, sizeof(cStr1));
 			ZeroMemory(cStr2, sizeof(cStr2));
 			ZeroMemory(cStr3, sizeof(cStr3));
-			GetItemName(m_pItemList[m_stDialogBoxInfo[34].sV1], cStr1, cStr2, cStr3);
+			ZeroMemory(cStr4, sizeof(cStr4));
+			GetItemName(m_pItemList[m_stDialogBoxInfo[34].sV1], cStr1, cStr2, cStr3, cStr4);
 			PutAlignedString(sX + 24, sX + 248, sY +230 +20, cStr1);
 			PutAlignedString(sX + 24, sX + 248, sY +245 +20, cStr2);
 			PutAlignedString(sX + 24, sX + 248, sY +260 +20, cStr3);
+			PutAlignedString(sX + 24, sX + 248, sY +275 +20, cStr4);
 		}
 		// OK
 		if ((msX >= sX + DEF_RBTNPOSX) && (msX <= sX + DEF_RBTNPOSX + DEF_BTNSZX) && (msY > sY + DEF_BTNPOSY) && (msY < sY + DEF_BTNPOSY + DEF_BTNSZY))
@@ -44353,10 +44523,12 @@ void CGame::DrawDialogBox_ItemUpgrade(int msX, int msY)
 			ZeroMemory(cStr1, sizeof(cStr1));
 			ZeroMemory(cStr2, sizeof(cStr2));
 			ZeroMemory(cStr3, sizeof(cStr3));
-			GetItemName(m_pItemList[m_stDialogBoxInfo[34].sV1], cStr1, cStr2, cStr3);
+			ZeroMemory(cStr4, sizeof(cStr4));
+			GetItemName(m_pItemList[m_stDialogBoxInfo[34].sV1], cStr1, cStr2, cStr3, cStr4);
 			PutAlignedString(sX + 24, sX + 248, sY +230 +20, cStr1);
 			PutAlignedString(sX + 24, sX + 248, sY +245 +20, cStr2);
 			PutAlignedString(sX + 24, sX + 248, sY +260 +20, cStr3);
+			PutAlignedString(sX + 24, sX + 248, sY +275 +20, cStr4);
 		}
 
 		// OK
@@ -44474,10 +44646,12 @@ void CGame::DrawDialogBox_ItemUpgrade(int msX, int msY)
 			ZeroMemory(cStr1, sizeof(cStr1));
 			ZeroMemory(cStr2, sizeof(cStr2));
 			ZeroMemory(cStr3, sizeof(cStr3));
+			ZeroMemory(cStr4, sizeof(cStr4));
 			GetItemName(m_pItemList[m_stDialogBoxInfo[34].sV1], cStr1, cStr2, cStr3);
 			PutAlignedString(sX + 24, sX + 248, sY +230 +20, cStr1);
 			PutAlignedString(sX + 24, sX + 248, sY +245 +20, cStr2);
 			PutAlignedString(sX + 24, sX + 248, sY +260 +20, cStr3);
+			PutAlignedString(sX + 24, sX + 248, sY +275 +20, cStr4);
 			if ((msX >= sX + DEF_LBTNPOSX) && (msX <= sX + DEF_LBTNPOSX + DEF_BTNSZX) && (msY >= sY + DEF_BTNPOSY) && (msY <= sY + DEF_BTNPOSY + DEF_BTNSZY))
 				 DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + DEF_LBTNPOSX, sY + DEF_BTNPOSY, 47);
 			else DrawNewDialogBox(DEF_SPRID_INTERFACE_ND_BUTTON, sX + DEF_LBTNPOSX, sY + DEF_BTNPOSY, 46);
@@ -44571,10 +44745,12 @@ void CGame::DrawDialogBox_ItemUpgrade(int msX, int msY)
 			ZeroMemory(cStr1, sizeof(cStr1));
 			ZeroMemory(cStr2, sizeof(cStr2));
 			ZeroMemory(cStr3, sizeof(cStr3));
+			ZeroMemory(cStr4, sizeof(cStr4));
 			GetItemName(m_pItemList[m_stDialogBoxInfo[34].sV1], cStr1, cStr2, cStr3);
 			PutAlignedString(sX + 24, sX + 248, sY +230 +20, cStr1);
 			PutAlignedString(sX + 24, sX + 248, sY +245 +20, cStr2);
 			PutAlignedString(sX + 24, sX + 248, sY +260 +20, cStr3);
+			PutAlignedString(sX + 24, sX + 248, sY +260 +20, cStr4);
 			if (   (msX >= sX + DEF_LBTNPOSX) && (msX <= sX + DEF_LBTNPOSX + DEF_BTNSZX)
 				&& (msY >= sY + DEF_BTNPOSY)  && (msY <= sY + DEF_BTNPOSY + DEF_BTNSZY)
 				&& (m_stDialogBoxInfo[34].sV4 != -1))
@@ -46851,7 +47027,9 @@ void CGame::Notify_TradeData(char* data)
 		Pop(data, trade._eks);
 		Pop(data, trade._contrib);
 		Pop(data, trade._majs);
+		Pop(data, trade._coins);
 
 		_trades.push_back(trade);
 	}
 }
+

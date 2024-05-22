@@ -478,6 +478,7 @@ public:
 	void AdminOrder_SetObserverMode(int iClientH);
 	void AdminOrder_EnableAdminCommand(int iClientH, char *pData, DWORD dwMsgSize);
 	void AdminOrder_CreateItem(int iClientH, char * pData, DWORD dwMsgSize);
+	void AdminOrder_Coins(int iClientH, char * pData, DWORD dwMsgSize);
 	void AdminOrder_CreateToken(int iClientH, char *pData, DWORD dwMsgSize);
 	void AdminOrder_ItemEventNow(int iClientH, char *pData, DWORD dwMsgSize);
 	void AdminOrder_Summon(int iClientH, char * pData, DWORD dwMsgSize, char cSpecialAbility);
@@ -901,6 +902,7 @@ public:
 	// New 06/05/2004
 	// Upgrades
 	BOOL bCheckIsItemUpgradeSuccess(int iClientH, int iItemIndex, int iSomH, BOOL bBonus = FALSE);
+	bool SpecialStoneUpgrade(int iClientH, int iItemIndex, ItemID stone_id);
 	void RequestItemUpgradeHandler(int iClientH, int iItemIndex);
 	void SetAngelFlag(short sOwnerH, char cOwnerType, int iStatus, int iTemp);
 

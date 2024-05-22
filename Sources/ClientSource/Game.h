@@ -160,7 +160,10 @@ class CGame
 {
 public:
 	vector<TradeItemUnit> _trades;
+	vector<TradeItemUnit*> _trades_by_type;
+
 	u32 _selected_trade_idx;
+	TradeType _selected_trade_type;
 
 	bool _quest_helper = true;
 	vector<QuestUnit> _quests;
@@ -402,8 +405,8 @@ public:
 	void _SetIlusionEffect(int iOwnerH);
 	int _iGetFOE(int iStatus);
 	void NoticementHandler(char * pData);
-	void GetItemName(char * cItemName, DWORD dwAttribute, char *pStr1, char *pStr2, char *pStr3);
-	void GetItemName(class CItem * pItem, char * pStr1, char * pStr2, char * pStr3);
+	void GetItemName(char * cItemName, DWORD dwAttribute, char *pStr1, char *pStr2, char *pStr3, char * pStr4 = nullptr);
+	void GetItemName(class CItem * pItem, char * pStr1, char * pStr2, char * pStr3, char * pStr4 = nullptr);
 	void _InitOnCreateNewCharacter();
 	void _LoadGameMsgTextContents();
 	BOOL _bCheckCurrentBuildItemStatus();
@@ -845,7 +848,7 @@ public:
 	int m_iAC;						// Armour Class
 	int m_iTHAC0;					// To Hit Armour Class 0
 
-	int m_iLevel, m_iStr, m_iInt, m_iVit, m_iDex, m_iMag, m_iCharisma, m_iExp, m_iContribution;
+	int m_iLevel, m_iStr, m_iInt, m_iVit, m_iDex, m_iMag, m_iCharisma, m_iExp, m_iContribution, _coins;
 	// Snoopy: Added Angels
 	int m_iAngelicStr, m_iAngelicInt, m_iAngelicDex, m_iAngelicMag;
 

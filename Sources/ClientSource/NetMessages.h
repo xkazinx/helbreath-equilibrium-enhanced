@@ -567,3 +567,4 @@
 
 
 #define DEF_NOTIFY_CONTRIBUTION                     0x0B6A
+#define DEF_NOTIFY_COINS									 0x0B6B

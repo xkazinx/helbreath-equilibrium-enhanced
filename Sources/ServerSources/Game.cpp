@@ -1902,6 +1902,9 @@ void CGame::RequestInitDataHandler(int iClientH, char * pData, char cKey)
 	ip = (int *)cp;
 	*ip = m_pClientList[iClientH]->m_iContribution;
 	cp += 4;
+	ip = (int*)cp;
+	*ip = m_pClientList[iClientH]->_coins;
+	cp += 4;
 	*cp = (char)m_pClientList[iClientH]->m_bIsObserverMode;
 	cp++;
 	if (m_pClientList[iClientH]->m_bIsObserverMode == FALSE) 
@@ -1919,7 +1922,7 @@ void CGame::RequestInitDataHandler(int iClientH, char * pData, char cKey)
 	*cp = m_pClientList[iClientH]->m_cDiscount;	//m_cDiscount = (char )*cp; // 100=> Price +100%
 	cp++;
 	iSize = iComposeInitMapData(m_pClientList[iClientH]->m_sX - m_pClientList[iClientH]->res_sX, m_pClientList[iClientH]->m_sY - m_pClientList[iClientH]->res_sY, iClientH, cp);
-	iRet = m_pClientList[iClientH]->m_pXSock->iSendMsg(pBuffer, 66 + iSize); // Zabuza fix
+	iRet = m_pClientList[iClientH]->m_pXSock->iSendMsg(pBuffer, 70 + iSize); // Zabuza fix
 	switch (iRet) {
 	case DEF_XSOCKEVENT_QUENEFULL:
 	case DEF_XSOCKEVENT_SOCKETERROR:
@@ -8088,14 +8091,8 @@ BOOL CGame::_bDecodePlayerDatafileContents(int iClientH, char * pData, DWORD dwS
 
 			case 86:
 			{
+			if(true){
 				int client = iClientH;
-				/*if (_bGetIsStringIsNumber(token) == FALSE) {
-					wsprintf(cTxt, "(!!!) Player(%s) data file error! wrong Data format - Connection closed. ", m_pClientList[client]->m_cCharName);
-					PutLogList(cTxt);
-					delete pContents;
-					delete pStrTok;
-					return FALSE;
-				}*/
 				std::istringstream in(token);
 				string str;
 				int idx = 0;
@@ -8142,11 +8139,28 @@ BOOL CGame::_bDecodePlayerDatafileContents(int iClientH, char * pData, DWORD dwS
 				cReadModeA = 0;
 				break;
 			}
+
+			case 87:
+			{
+				if (_bGetIsStringIsNumber(token) == FALSE) {
+					wsprintf(cTxt, "(!!!) Player(%s) data file error! wrong Data format ( coins ) - Connection closed. ", m_pClientList[iClientH]->m_cCharName);
+					PutLogList(cTxt);
+					delete pContents;
+					delete pStrTok;
+					return FALSE;
+				}
+				m_pClientList[iClientH]->_coins = atoi(token);
+				if (m_pClientList[iClientH]->_coins < 0) m_pClientList[iClientH]->_coins = 0;
+				cReadModeA = 0;
+				break;
+			}
+			}
 			}
 		}else 
 		{	
 
 			if (memcmp(token, "quest-id", 8) == 0)    cReadModeA = 86;
+			if (memcmp(token, "coins", 5) == 0)    cReadModeA = 87;
 			if (memcmp(token, "character-loc-map", 17) == 0)		 cReadModeA = 1;
 			if (memcmp(token, "character-loc-x", 15) == 0)			 cReadModeA = 2;
 			if (memcmp(token, "character-loc-y", 15) == 0)			 cReadModeA = 3;
@@ -8661,6 +8675,9 @@ int CGame::_iComposePlayerDataFileContents(int iClientH, char * pData)
 	wsprintf(cTxt, "character-contribution = %d", m_pClientList[iClientH]->m_iContribution);
 	strcat(pData, cTxt);
 	strcat(pData,"\n");
+	wsprintf(cTxt, "coins = %d", m_pClientList[iClientH]->_coins);
+	strcat(pData, cTxt);
+	strcat(pData, "\n");
 	wsprintf(cTxt, "character-quest-completed = %d", (int)m_pClientList[iClientH]->m_bIsQuestCompleted);
 	strcat(pData, cTxt);
 	strcat(pData,"\n");
@@ -10293,6 +10310,11 @@ void CGame::ChatMsgHandler(int iClientH, char * pData, DWORD dwMsgSize)
 		}
 		if (memcmp(cp, "/createitem ", 12) == 0) 			// m_iAdminLevelCreateItem + m_bIsAdminCommandEnabled
 		{	AdminOrder_CreateItem(iClientH, cp, dwMsgSize - 21);
+			return;
+		}
+		if (memcmp(cp, "/coins ", 7) == 0) 			// m_iAdminLevelCreateItem + m_bIsAdminCommandEnabled
+		{
+			AdminOrder_Coins(iClientH, cp, dwMsgSize - 21);
 			return;
 		}
 		if (memcmp(cp, "/createtoken ", 13) == 0) 			// m_iAdminLevelSummon + m_bIsAdminCommandEnabled
@@ -15697,6 +15719,7 @@ void CGame::SendNotifyMsg(int iFromH, int iToH, WORD wMsgType, DWORD sV1, DWORD 
 		iRet = m_pClientList[iToH]->m_pXSock->iSendMsg(cData, 6 + DEF_MAXITEMS*4);
 		break;
 
+	case DEF_NOTIFY_COINS:
 	case DEF_NOTIFY_CONTRIBUTION:
 	case DEF_NOTIFY_ENEMYKILLS:
 		ip  = (int *)cp;
@@ -22237,6 +22260,9 @@ RTH_NEXTSTEP: // Teleport on some map from same server
 	ip = (int *)cp;
 	*ip = m_pClientList[iClientH]->m_iContribution;
 	cp += 4;
+	ip = (int*)cp;
+	*ip = m_pClientList[iClientH]->_coins;
+	cp += 4;
 	// Snoopy moved this before test
 	*cp = (char)m_pClientList[iClientH]->m_bIsObserverMode;
 	cp++;
@@ -22255,7 +22281,7 @@ RTH_NEXTSTEP: // Teleport on some map from same server
 	*cp = m_pClientList[iClientH]->m_cDiscount;	//m_cDiscount = (char )*cp; // 100=> Price +100%
 	cp++;
 	iSize = iComposeInitMapData(m_pClientList[iClientH]->m_sX - m_pClientList[iClientH]->res_sX, m_pClientList[iClientH]->m_sY - m_pClientList[iClientH]->res_sY, iClientH, cp);
-	iRet = m_pClientList[iClientH]->m_pXSock->iSendMsg(pBuffer, 66 + iSize); // Zabuza fix
+	iRet = m_pClientList[iClientH]->m_pXSock->iSendMsg(pBuffer, 70 + iSize); // Zabuza fix
 	switch (iRet) {
 	case DEF_XSOCKEVENT_QUENEFULL:
 	case DEF_XSOCKEVENT_SOCKETERROR:
@@ -35348,7 +35374,44 @@ void CGame::CalcTotalItemEffect(int iClientH, int iEquipItemID, BOOL bNotify)
 
 	for (sItemIndex = 0; sItemIndex < DEF_MAXITEMS; sItemIndex++)
 	if  (m_pClientList[iClientH]->m_pItemList[sItemIndex] != NULL) 
-	{	switch (m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sItemEffectType) {
+	{	
+		
+		if(m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum == ITEMID_MAGICNECKLACE_MR10)
+		{
+			m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum = m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum;
+		}
+
+		if (m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum == ITEMID_MAGICNECKLACE_MS10)
+		{
+			m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum = m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum;
+		}
+
+		if (m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum == ITEMID_MAGICNECKLACE_DM1)
+		{
+			m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum = m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum;
+		}
+
+		if (m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum == ITEMID_MAGICNECKLACE_DF10)
+		{
+			m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum = m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum;
+		}
+
+		if (m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum == ITEMID_NECKLACEOFXELIMA)
+		{
+			m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum = m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum;
+		}
+
+		if (m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum == ITEMID_NECKLACEOFMERIEN)
+		{
+			m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum = m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum;
+		}
+
+		if (m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum == ITEMID_RINGOFABADDON)
+		{
+			m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum = m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum;
+		}
+
+		switch (m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sItemEffectType) {
 		case DEF_ITEMEFFECTTYPE_ALTERITEMDROP:
 			if (m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_wCurLifeSpan > 0) 
 			{	m_pClientList[iClientH]->m_iAlterItemDropIndex = sItemIndex;
@@ -41742,7 +41805,31 @@ BOOL CGame::_bDepleteDestTypeItemUseEffect(int iClientH, int dX, int dY, short s
 	if ((sItemIndex < 0) || (sItemIndex >= DEF_MAXITEMS)) return FALSE;
 	if (m_pClientList[iClientH]->m_pItemList[sItemIndex] == NULL) return FALSE;
 
+	auto p = m_pClientList[iClientH];
+	auto it = m_pClientList[iClientH]->m_pItemList[sItemIndex];
+
+	//#_bDepleteDestTypeItemUseEffect
+	if(m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum == ITEMID_SPECIALXELIMASTONE)
+	{
+
+	}
+	else if(m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum == ITEMID_SPECIALMERIENSTONE)
+	{
+	
+	}
+	else if(m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sIDnum == ITEMID_SPECIALHELIENSTONE)
+	{
+
+	}
+	else
+	{
 	switch (m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sItemEffectType) {
+		//#DEF_ITEMEFFECTTYPE_MERIENNECK
+	//case DEF_ITEMEFFECTTYPE_XELIMANECK:
+	case DEF_ITEMEFFECTTYPE_MERIENNECK:
+		p->m_iAddDR += common::kMerienNeckDefense + (common::kMerienNeckDefenseAdd * it->GetUpgrade());
+		break;
+
 	case DEF_ITEMEFFECTTYPE_OCCUPYFLAG:
 		bRet = TRUE;
         if (m_pClientList[iClientH]->m_pItemList[sItemIndex]->m_sTouchEffectType = DEF_ITET_UNIQUE_OWNER)
@@ -41805,6 +41892,7 @@ BOOL CGame::_bDepleteDestTypeItemUseEffect(int iClientH, int dX, int dY, short s
 		return bRet;
 	default:
 		break;
+	}
 	}
 	return TRUE;
 }
@@ -57003,6 +57091,37 @@ BOOL CGame::bCheckIsItemUpgradeSuccess(int iClientH, int iItemIndex, int iSomH, 
 	return FALSE;
 }
 
+bool CGame::SpecialStoneUpgrade(int iClientH, int iItemIndex, ItemID stone_id)
+{
+	int iValue, iProb, iResult;
+	if (m_pClientList[iClientH]->m_pItemList[iItemIndex] == NULL) return FALSE;
+
+	iValue = (m_pClientList[iClientH]->m_pItemList[iItemIndex]->m_dwAttribute & 0x0F0000000) >> 28;
+
+	switch (iValue) {// Depends on alreaddy existing + of item
+	case 0: iProb = 30; break;  // +1 :90%     +1~+2
+	case 1: iProb = 25; break;  // +2 :80%      +3
+	case 2: iProb = 20; break;  // +3 :48%      +4 
+	case 3: iProb = 15; break;  // +4 :24%      +5
+	case 4: iProb = 10; break;  // +5 :9.6%     +6
+	case 5: iProb = 10; break;  // +6 :2.8%     +7
+	case 6: iProb = 8; break;  // +7 :0.57%    +8
+	case 7: iProb = 8; break;  // +8 :0.05%    +9
+	case 8: iProb = 5; break;  // +9 :0.004%   +10
+	case 9: iProb = 3; break;  // +10:0.00016%
+	default: iProb = 1; break;
+	}
+	
+	iProb *= 100;
+	iResult = iDice(1, 10000);
+	if (iProb >= iResult) {
+		_bItemLog(DEF_ITEMLOG_UPGRADESUCCESS, iClientH, (int)-1, m_pClientList[iClientH]->m_pItemList[iItemIndex], TRUE);
+		return TRUE;
+	}
+	_bItemLog(DEF_ITEMLOG_UPGRADEFAIL, iClientH, (int)-1, m_pClientList[iClientH]->m_pItemList[iItemIndex], TRUE);
+	return FALSE;
+}
+
 BOOL CGame::bReadAdminListConfigFile(char *pFn)
 {FILE * pFile;
  HANDLE hFile;
@@ -60702,7 +60821,7 @@ void CGame::RequestItemUpgradeHandler(int iClientH, int iItemIndex)
 		case 647: // Stone golem
 		case 734: // ArchMage
 		case 735: // Dragon power
-		case 858: // NecklaceOfMerien
+		//case 858: // NecklaceOfMerien
 		case 1007: // Air ring
 		case 1008: // Earth ring
 		case 1009: // Fire ring
@@ -67901,6 +68020,7 @@ void CGame::SendTradeData(CClient* player)
 		Push(p, trade._eks);
 		Push(p, trade._contrib);
 		Push(p, trade._majs);
+		Push(p, trade._coins);
 	}
 
 	player->m_pXSock->iSendMsg(data, p - data);
@@ -67937,7 +68057,8 @@ void CGame::RequestTradeItem(int iClientH, char* data)
 
 	if(trade->_eks > player->m_iEnemyKillCount ||
 		trade->_contrib > player->m_iContribution ||
-		trade->_majs > player->m_iGizonItemUpgradeLeft)
+		trade->_majs > player->m_iGizonItemUpgradeLeft ||
+		trade->_coins > player->_coins)
 	{
 		return;
 	}
@@ -68032,12 +68153,15 @@ void CGame::RequestTradeItem(int iClientH, char* data)
 	player->m_iEnemyKillCount -= trade->_eks;
 	player->m_iContribution -= trade->_contrib;
 	player->m_iGizonItemUpgradeLeft -= trade->_majs;
+	player->_coins -= trade->_coins;
 
 	SendNotifyMsg(NULL, iClientH, DEF_NOTIFY_GIZONITEMUPGRADELEFT, m_pClientList[iClientH]->m_iGizonItemUpgradeLeft, NULL, NULL, NULL);
 
 	SendNotifyMsg(NULL, iClientH, DEF_NOTIFY_CONTRIBUTION, player->m_iContribution, NULL, NULL, NULL);
 
 	SendNotifyMsg(NULL, iClientH, DEF_NOTIFY_ENEMYKILLS, m_pClientList[iClientH]->m_iEnemyKillCount, NULL, NULL, NULL);
+
+	SendNotifyMsg(NULL, iClientH, DEF_NOTIFY_COINS, player->_coins, NULL, NULL, NULL);
 }
 
 bool CGame::ReadTrades(string file_name)
@@ -68067,6 +68191,7 @@ bool CGame::ReadTrades(string file_name)
 		TradeEks,
 		TradeContrib,
 		TradeMajs,
+		TradeCoins,
 	};
 
 	int i;
@@ -68096,6 +68221,10 @@ bool CGame::ReadTrades(string file_name)
 				else if (str.starts_with("trade_majs"))
 				{
 					data_id = TradeDataID::TradeMajs;
+				}
+				else if (str.starts_with("trade_coins"))
+				{
+					data_id = TradeDataID::TradeCoins;
 				}
 				break;
 
@@ -68150,9 +68279,75 @@ bool CGame::ReadTrades(string file_name)
 				data_id = TradeDataID::None;
 				break;
 			}
+
+			case TradeDataID::TradeCoins:
+			{
+				trade->_coins = std::stoul(str);
+				data_id = TradeDataID::None;
+				break;
+			}
 			}
 		}
 	}
 
 	return true;
+}
+
+
+
+void CGame::AdminOrder_Coins(int iClientH, char* pData, DWORD dwMsgSize)
+{
+	char   seps[] = "= \t\n";
+	char* cp, * token, cBuff[256], cItemName[256], cData[256], cTemp[256], cAttribute[256], cValue[256];
+	SYSTEMTIME SysTime;
+	class  CStrTok* pStrTok;
+	class  CItem* pItem;
+	short* sp;
+	int    iRet, iTemp, iEraseReq, iValue;
+	DWORD* dwp;
+	WORD* wp, wTemp;
+	double dV1, dV2, dV3;
+	if ((dwMsgSize) <= 0) return;								// if the command is just "/createitem " than no effect.		
+	if (m_pClientList[iClientH] == NULL) return;				// if the client doesnt exist than no effect.
+	if (m_pClientList[iClientH]->m_bIsAdminCommandEnabled == FALSE) return;
+	if (m_pClientList[iClientH]->m_iAdminUserLevel < 2) return;	// Do not allow item 
+
+	ZeroMemory(cBuff, sizeof(cBuff));
+	memcpy(cBuff, pData, dwMsgSize);
+	pStrTok = new class CStrTok(cBuff, seps);
+	token = pStrTok->pGet();
+	token = pStrTok->pGet();
+	// if the token is something it is an item name
+	if (token != NULL) {
+
+		ZeroMemory(cItemName, sizeof(cItemName));
+		strcpy(cItemName, token);
+	}
+
+	CClient * player = nullptr;
+
+	for(int i = 0; i < DEF_MAXCLIENTS; i++)
+	{
+		if(!m_pClientList[i])
+			continue;
+
+		if(strcmp(m_pClientList[i]->m_cCharName, cItemName) == 0)
+		{
+			player = m_pClientList[i];
+			break;
+		}
+	}
+	if(!player)
+		return;
+
+	token = pStrTok->pGet();
+	// if the token is something it is an item name
+	if (token != NULL) {
+		if(!_bGetIsStringIsNumber(token))
+			return;
+
+		player->_coins += atoi(token);
+	}
+
+	SendNotifyMsg(NULL, player->_handle, DEF_NOTIFY_COINS, player->_coins, NULL, NULL, NULL);
 }
